@@ -2,5 +2,21 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxt/eslint', '@nuxt/test-utils']
+  modules: ['@nuxt/eslint', '@nuxt/test-utils'],
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        esModuleInterop: true,
+      },
+    },
+  },
+  nitro: {
+    typescript: {
+      tsConfig: {
+        compilerOptions: {
+          esModuleInterop: true,
+        },
+      },
+    },
+  },
 })

@@ -1,0 +1,23 @@
+{
+  "name": "Nuxt 3 Dev",
+  "dockerComposeFile": "compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/tainy-tune",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "editorconfig.editorconfig"
+      ]
+    }
+  },
+  "forwardPorts": [
+    3000,
+    5432
+  ],
+  "postCreateCommand": "pnpm install"
+}

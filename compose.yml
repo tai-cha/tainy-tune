@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/tainy_tune
+      NUXT_HOST: 0.0.0.0
+      NUXT_PORT: 3000
+    depends_on:
+      - db
+
+  db:
+    image: ankane/pgvector
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: tainy_tune
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

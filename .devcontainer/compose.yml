@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/typescript-node:24-trixie
+    volumes:
+      - ../..:/workspaces:cached
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+    links:
+      - db
+
+  db:
+    image: ankane/pgvector
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: tainy_tune
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
