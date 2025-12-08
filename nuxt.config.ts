@@ -18,5 +18,10 @@ export default defineNuxtConfig({
         },
       },
     },
+    // Fix for native modules: Allow nitro to handle them, but bundle transformers
+    // The issue is hot-reload, which is fixed by global singleton in embedding.ts
+    externals: {
+      inline: ['@xenova/transformers'],
+    },
   },
 })
