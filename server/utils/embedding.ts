@@ -1,6 +1,9 @@
-import { pipeline } from '@xenova/transformers';
+import { pipeline, env } from '@xenova/transformers';
 
-// Singleton instance for the pipeline, unaffected by HMR
+// Configuration to prevent WASM fallback and ensure local execution
+env.allowLocalModels = false; // Allow downloading from HF Hub if not found (default behavior)
+env.useBrowserCache = false; // We are in Node.js
+
 const globalAny: any = global;
 let extractor = globalAny._extractor || null;
 

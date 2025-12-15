@@ -1,4 +1,5 @@
 import { journals } from '../db/schema';
+import { analyzeJournal } from '../utils/ai';
 import { getEmbedding } from '../utils/embedding';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
@@ -12,7 +13,7 @@ const db = drizzle(client);
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { content } = body;
+  const { content, mood } = body;
 
   if (!content || typeof content !== 'string') {
     throw createError({
@@ -22,16 +23,29 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Generate embedding
-    const embedding = await getEmbedding(content);
+    // 1. Process with AI (Parallel: Embedding + CBT Analysis)
+    const [embedding, aiAnalysis] = await Promise.all([
+      getEmbedding(content),
+      analyzeJournal(content),
+    ]);
 
-    // Insert into database
-    const result = await db.insert(journals).values({
-      content,
-      embedding,
-    }).returning();
+    // 2. Prepare Data (User input overrides AI mood if provided)
+    const finalMoodScore = typeof mood === 'number' ? mood : aiAnalysis.mood_score;
 
-    return result[0];
+    // 3. Save to DB
+    const [inserted] = await db
+      .insert(journals)
+      .values({
+        content,
+        embedding,
+        mood_score: finalMoodScore,
+        tags: aiAnalysis.tags,
+        distortion_tags: aiAnalysis.distortion_tags,
+        advice: aiAnalysis.advice,
+      })
+      .returning();
+
+    return inserted;
   } catch (error) {
     console.error('Error creating journal entry:', error);
     throw createError({
