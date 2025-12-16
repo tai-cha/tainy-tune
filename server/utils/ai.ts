@@ -28,7 +28,7 @@ export async function analyzeJournal(content: string): Promise<AnalysisResult> {
     
     1. **Mood Score**: Estimate the user's mood on a scale of 1 (Worst) to 10 (Best).
     2. **Tags**: Generate 3-5 keywords summarizing the topic.
-    3. **Cognitive Distortions**: Identify any cognitive distortions from the following list. If none, return an empty list. **Important: Return the corresponding KEY strings.**
+    3. **Cognitive Distortions**: Identify ALL applicable cognitive distortions from the following list. It is common to have multiple distortions in a single entry; list all that apply. If none, return an empty list. **Important: Return the corresponding KEY strings.**
        - all_or_nothing (All-or-nothing thinking / 白黒思考)
        - overgeneralization (Overgeneralization / 過度の一般化)
        - mental_filter (Mental filter / 心のフィルター)

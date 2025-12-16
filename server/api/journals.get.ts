@@ -20,11 +20,20 @@ export default defineEventHandler(async (event) => {
   if (endDate) filters.push(lte(journals.created_at, new Date(endDate)));
   if (search) {
     const searchPattern = `%${search}%`;
-    filters.push(or(
+    const orConditions = [
       ilike(journals.content, searchPattern),
       sql`array_to_string(${journals.tags}, ' ') ILIKE ${searchPattern}`,
+      // Search raw English keys
       sql`array_to_string(${journals.distortion_tags}, ' ') ILIKE ${searchPattern}`
-    ));
+    ];
+
+    // Check if search matches any localized distortion names
+    const matchedKeys = findDistortionKeys(search);
+    matchedKeys.forEach(key => {
+      orConditions.push(sql`array_to_string(${journals.distortion_tags}, ' ') ILIKE ${`%${key}%`}`);
+    });
+
+    filters.push(or(...orConditions));
   }
 
   try {
