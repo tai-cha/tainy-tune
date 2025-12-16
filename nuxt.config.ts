@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     port: 3000,
   },
   devtools: { enabled: true },
-  modules: ['@nuxt/eslint', '@nuxt/test-utils', '@nuxtjs/storybook', '@nuxtjs/i18n'],
+  modules: ['@nuxt/eslint', '@nuxt/test-utils', '@nuxtjs/i18n'],
   i18n: {
     vueI18n: './i18n.config.ts', // optional, for legacy
     locales: [
