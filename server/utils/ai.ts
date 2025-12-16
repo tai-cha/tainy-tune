@@ -20,13 +20,6 @@ const model = genAI.getGenerativeModel({
   },
 });
 
-export const AnalysisSchema = z.object({
-  mood_score: z.number().int().min(1).max(10).optional(),
-  tags: z.array(z.string()),
-  distortion_tags: z.array(z.string()),
-  advice: z.string(),
-});
-
 export type AnalysisResult = z.infer<typeof AnalysisSchema>;
 
 export async function analyzeJournal(content: string): Promise<AnalysisResult> {
@@ -35,17 +28,19 @@ export async function analyzeJournal(content: string): Promise<AnalysisResult> {
     
     1. **Mood Score**: Estimate the user's mood on a scale of 1 (Worst) to 10 (Best).
     2. **Tags**: Generate 3-5 keywords summarizing the topic.
-    3. **Cognitive Distortions**: Identify any cognitive distortions from the following list. If none, return an empty list. **Important: Return the Japanese term.**
-       - All-or-nothing thinking (白黒思考)
-       - Overgeneralization (過度の一般化)
-       - Mental filter (心のフィルター)
-       - Disqualifying the positive (マイナス化思考)
-       - Jumping to conclusions (結論の飛躍)
-       - Magnification/Minimization (拡大解釈・過小評価)
-       - Emotional reasoning (感情的決めつけ)
-       - Should statements (すべき思考)
-       - Labeling (レッテル貼り)
-       - Personalization (自己関連付け)
+    3. **Cognitive Distortions**: Identify any cognitive distortions from the following list. If none, return an empty list. **Important: Return the corresponding KEY strings.**
+       - all_or_nothing (All-or-nothing thinking / 白黒思考)
+       - overgeneralization (Overgeneralization / 過度の一般化)
+       - mental_filter (Mental filter / 心のフィルター)
+       - disqualifying_positive (Disqualifying the positive / マイナス化思考)
+       - jumping_conclusions (Jumping to conclusions / 結論の飛躍 - general)
+       - mind_reading (Mind reading / 心の読みすぎ)
+       - fortune_telling (Fortune telling / 先読みの誤り)
+       - magnification_minimization (Magnification/Minimization / 拡大解釈・過小評価)
+       - emotional_reasoning (Emotional reasoning / 感情的決めつけ)
+       - should_statements (Should statements / すべき思考)
+       - labeling (Labeling / レッテル貼り)
+       - personalization (Personalization / 自己関連付け)
     4. **Advice**: Provide a short, empathetic, and actionable CBT-based advice or comment (1-2 sentences) in Japanese. Focus on validating the user's feelings and offering a different perspective if there are distortions.
     
     Journal Content:
@@ -68,3 +63,23 @@ export async function analyzeJournal(content: string): Promise<AnalysisResult> {
     };
   }
 }
+
+export const AnalysisSchema = z.object({
+  mood_score: z.number().int().min(1).max(10).optional(),
+  tags: z.array(z.string()),
+  distortion_tags: z.array(z.enum([
+    'all_or_nothing',
+    'overgeneralization',
+    'mental_filter',
+    'disqualifying_positive',
+    'jumping_conclusions',
+    'mind_reading',
+    'fortune_telling',
+    'magnification_minimization',
+    'emotional_reasoning',
+    'should_statements',
+    'labeling',
+    'personalization',
+  ])),
+  advice: z.string(),
+});

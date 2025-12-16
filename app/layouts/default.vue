@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline';
+import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon, ChartPieIcon } from '@heroicons/vue/24/outline';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -9,6 +9,7 @@ const navigation = [
   { name: 'Journal', href: '/journal', icon: PencilSquareIcon },
   { name: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
   { name: 'History', href: '/history', icon: ClockIcon },
+  { name: 'Insights', href: '/insights', icon: ChartPieIcon },
 ];
 
 const isActive = (path: string) => route.path === path;
@@ -37,6 +38,10 @@ const isActive = (path: string) => route.path === path;
         <NuxtLink to="/history" :class="[$style.navItem, isActive('/history') && $style.active]">
           <ClockIcon :class="$style.icon" />
           <span :class="$style.navLabel">{{ $t('nav.history') }}</span>
+        </NuxtLink>
+        <NuxtLink to="/insights" :class="[$style.navItem, isActive('/insights') && $style.active]">
+          <ChartPieIcon :class="$style.icon" />
+          <span :class="$style.navLabel">{{ $t('nav.insights') }}</span>
         </NuxtLink>
       </nav>
     </aside>

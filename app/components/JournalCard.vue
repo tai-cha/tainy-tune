@@ -38,7 +38,7 @@ const formatDate = (date: string | Date | null) => {
         #{{ tag }}
       </span>
       <span v-for="dist in journal.distortion_tags" :key="dist" :class="[$style.tag, $style.distortion]">
-        ⚠ {{ dist }}
+        ⚠ {{ $te(`distortions.${dist}`) ? $t(`distortions.${dist}`) : dist }}
       </span>
     </div>
 
@@ -54,7 +54,7 @@ const formatDate = (date: string | Date | null) => {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;

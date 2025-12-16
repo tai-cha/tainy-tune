@@ -18,6 +18,7 @@
     "@nuxt/test-utils": "3.20.1",
     "@nuxtjs/i18n": "^10.2.1",
     "@xenova/transformers": "^2.17.2",
+    "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.44.7",
     "eslint": "^9.39.1",
@@ -25,6 +26,7 @@
     "postgres": "^3.4.7",
     "sharp": "^0.34.5",
     "vue": "^3.5.25",
+    "vue-chartjs": "^5.3.3",
     "vue-router": "^4.6.3",
     "zod": "^4.1.13"
   },

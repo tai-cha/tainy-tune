@@ -13,9 +13,10 @@
   },
   "nav": {
     "dashboard": "ホーム",
-    "journal": "日記",
-    "chat": "AI対話",
-    "history": "履歴"
+    "journal": "日記を書く",
+    "chat": "AIと話す",
+    "history": "振り返る",
+    "insights": "分析"
   },
   "dashboard": {
     "subtitle": "今の気分はどうですか？",
@@ -85,5 +86,25 @@
   },
   "journalCard": {
     "mood": "気分"
+  },
+  "distortions": {
+    "all_or_nothing": "白黒思考",
+    "overgeneralization": "過度の一般化",
+    "mental_filter": "心のフィルター",
+    "disqualifying_positive": "マイナス化思考",
+    "jumping_conclusions": "結論の飛躍",
+    "mind_reading": "心の読みすぎ",
+    "fortune_telling": "先読みの誤り",
+    "magnification_minimization": "拡大解釈・過小評価",
+    "emotional_reasoning": "感情的決めつけ",
+    "should_statements": "すべき思考",
+    "labeling": "レッテル貼り",
+    "personalization": "自己関連付け"
+  },
+  "insights": {
+    "title": "インサイト",
+    "moodChart": "気分の推移 (過去30日)",
+    "distortionChart": "認知の歪み傾向",
+    "noData": "データがありません。日記を書くとここに分析結果が表示されます。"
   }
 }
