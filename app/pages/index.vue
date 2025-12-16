@@ -4,10 +4,10 @@ import { PencilSquareIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/out
 // User Greeting
 const { t } = useI18n();
 const hours = new Date().getHours();
-const greeting = hours < 12 
-  ? t('common.greeting.morning') 
-  : hours < 18 
-    ? t('common.greeting.afternoon') 
+const greeting = hours < 12
+  ? t('common.greeting.morning')
+  : hours < 18
+    ? t('common.greeting.afternoon')
     : t('common.greeting.evening');
 
 // Recent Logs (Fetch last 3)
@@ -19,7 +19,8 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <h1 :class="$style.greeting">{{ greeting }}, User.</h1>
+      <h1 :class="$style.greeting">{{ $t('common.greeting.format', { greeting: greeting, name: $t('common.user') }) }}
+      </h1>
       <p :class="$style.subtitle">{{ $t('dashboard.subtitle') }}</p>
     </header>
 
@@ -52,16 +53,12 @@ const { data: recentJournals } = await useFetch('/api/journals', {
         <h2>{{ $t('dashboard.recent.title') }}</h2>
         <NuxtLink to="/history" :class="$style.viewAll">{{ $t('dashboard.recent.viewAll') }}</NuxtLink>
       </div>
-      
+
       <div :class="$style.list">
         <div v-if="!recentJournals?.length" :class="$style.empty">
           {{ $t('dashboard.recent.empty') }}
         </div>
-        <JournalCard 
-          v-for="journal in recentJournals" 
-          :key="journal.id" 
-          :journal="journal" 
-        />
+        <JournalCard v-for="journal in recentJournals" :key="journal.id" :journal="journal" />
       </div>
     </div>
   </div>
@@ -109,12 +106,12 @@ const { data: recentJournals } = await useFetch('/api/journals', {
   flex-direction: column;
   gap: 1rem;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .actionCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .actionIconBg {

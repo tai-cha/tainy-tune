@@ -1,10 +1,12 @@
 {
   "common": {
     "greeting": {
+      "format": "{greeting}、{name}さん",
       "morning": "おはようございます",
       "afternoon": "こんにちは",
       "evening": "こんばんは"
     },
+    "user": "ユーザー",
     "save": "保存する",
     "saving": "保存中...",
     "cancel": "キャンセル",
