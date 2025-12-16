@@ -49,7 +49,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-        }}</span></label>
+            }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
@@ -179,6 +179,7 @@ async function submitJournal() {
 
 .textarea {
   min-height: 150px;
+  width: 100%;
   padding: 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -198,7 +199,7 @@ async function submitJournal() {
   justify-content: flex-end;
 }
 
-.button {
+.submitBtn {
   background-color: #3b82f6;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -209,12 +210,12 @@ async function submitJournal() {
   transition: background-color 0.2s;
 }
 
-.button:disabled {
+.submitBtn:disabled {
   background-color: #94a3b8;
   cursor: not-allowed;
 }
 
-.button:hover:not(:disabled) {
+.submitBtn:hover:not(:disabled) {
   background-color: #2563eb;
 }
 
