@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, useCssModule } from 'vue';
 
 const content = ref('');
 const mood = ref(5);
-const isSubmitting = ref(false);
+const loading = ref(false);
 const result = ref<any>(null);
+
+const style = useCssModule();
+
+const moodColorClass = computed(() => {
+  if (mood.value >= 8) return style.moodGood;
+  if (mood.value >= 5) return style.moodNormal;
+  return style.moodBad;
+});
 
 async function submitJournal() {
   if (!content.value.trim()) return;
 
-  isSubmitting.value = true;
+  loading.value = true;
   result.value = null; // Reset result
 
   try {
@@ -20,77 +28,73 @@ async function submitJournal() {
         mood: mood.value,
       },
     });
-    
+
     // Show result
     result.value = response;
     content.value = '';
     mood.value = 5;
-    
+
   } catch (error) {
     console.error('Failed to save journal:', error);
     alert('Failed to save journal. Please try again.');
   } finally {
-    isSubmitting.value = false;
+    loading.value = false;
   }
 }
 </script>
 
 <template>
-  <div class="wrapper">
-    <form @submit.prevent="submitJournal" :class="$style.form" v-if="!result">
-      <div :class="$style.field">
-        <label :class="$style.label">
-          Current Mood ({{ mood }}/10)
-        </label>
-        <input
-          v-model.number="mood"
-          type="range"
-          min="1"
-          max="10"
-          :class="$style.slider"
-        />
+  <div :class="$style.wrapper">
+    <form @submit.prevent="submitJournal" :class="$style.form">
+
+      <div :class="$style.moodSection">
+        <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
+        }}</span></label>
+        <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
+          :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
 
-      <div :class="$style.field">
-        <label :class="$style.label" for="content">What's on your mind?</label>
-        <textarea
-          id="content"
-          v-model="content"
-          :class="$style.textarea"
-          placeholder="Write your thoughts..."
-          :disabled="isSubmitting"
-        ></textarea>
+      <div :class="$style.inputGroup">
+        <textarea v-model="content" :placeholder="$t('journal.form.content')" :class="$style.textarea"
+          required></textarea>
       </div>
 
       <div :class="$style.actions">
-        <button
-          type="submit"
-          :class="$style.button"
-          :disabled="isSubmitting || !content.trim()"
-        >
-          {{ isSubmitting ? 'Saving & Analyzing...' : 'Save Log' }}
+        <button type="submit" :class="$style.submitBtn" :disabled="loading">
+          <span v-if="loading">{{ $t('common.saving') }}</span>
+          <span v-else>{{ $t('journal.form.analyze') }}</span>
         </button>
       </div>
     </form>
 
-    <div v-else :class="$style.result">
-      <h3 :class="$style.resultTitle">Entry Saved</h3>
-      
-      <div :class="$style.feedback" v-if="result.advice">
-        <h4 :class="$style.feedbackTitle">AI Feedback</h4>
-        <p>{{ result.advice }}</p>
+    <!-- RESULT CARD -->
+    <div v-if="result" :class="$style.resultCard">
+      <div :class="$style.resultHeader">
+        <h3>Analyze Result</h3>
+        <div :class="$style.moodBadge">{{ $t('journal.result.mood') }}: {{ result.mood_score }}</div>
       </div>
 
-      <div :class="$style.tags" v-if="result.tags?.length || result.distortion_tags?.length">
-        <div v-for="tag in result.tags" :key="tag" :class="$style.tag">
-          #{{ tag }}
+      <div :class="$style.resultBody">
+        <div :class="$style.tags" v-if="result.tags?.length">
+          <span v-for="tag in result.tags" :key="tag" :class="$style.tag">#{{ tag }}</span>
         </div>
-        <div v-for="dist in result.distortion_tags" :key="dist" :class="[$style.tag, $style.distortion]">
-          ⚠ {{ dist }}
+
+        <div :class="$style.distortions" v-if="result.distortion_tags?.length">
+          <h4>{{ $t('journal.result.distortions') }}:</h4>
+          <ul>
+            <li v-for="d in result.distortion_tags" :key="d">{{ d }}</li>
+          </ul>
+        </div>
+
+        <div :class="$style.advice" v-if="result.advice">
+          <h4>{{ $t('journal.result.advice') }}:</h4>
+          <p>{{ result.advice }}</p>
+        </div>
+
+        <div :class="$style.resultActions">
+          <NuxtLink to="/" :class="$style.homeLink">{{ $t('journal.result.backToHome') }}</NuxtLink>
         </div>
       </div>
-
-      <button @click="result = null" :class="$style.button">Write Another</button>
     </div>
   </div>
 </template>
@@ -217,5 +221,20 @@ async function submitJournal() {
 .error {
   color: #e53e3e;
   font-weight: 500;
+}
+
+.moodGood {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+.moodNormal {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.moodBad {
+  color: #f97316;
+  font-weight: 700;
 }
 </style>

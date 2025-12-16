@@ -1,0 +1,89 @@
+{
+  "common": {
+    "greeting": {
+      "morning": "おはようございます",
+      "afternoon": "こんにちは",
+      "evening": "こんばんは"
+    },
+    "save": "保存する",
+    "saving": "保存中...",
+    "cancel": "キャンセル",
+    "back": "戻る",
+    "required": "必須"
+  },
+  "nav": {
+    "dashboard": "ホーム",
+    "journal": "日記",
+    "chat": "AI対話",
+    "history": "履歴"
+  },
+  "dashboard": {
+    "subtitle": "今の気分はどうですか？",
+    "quickActions": {
+      "write": {
+        "title": "日記を書く",
+        "desc": "思考を整理する"
+      },
+      "chat": {
+        "title": "AIパートナー",
+        "desc": "対話で深掘りする"
+      }
+    },
+    "recent": {
+      "title": "最近の活動",
+      "viewAll": "すべて見る",
+      "empty": "まだ履歴がありません。最初の日記を書いてみましょう！"
+    }
+  },
+  "journal": {
+    "title": "New Journal",
+    "subtitle": "今の気持ちや出来事を書き出しましょう",
+    "form": {
+      "mood": "今の気分 (1-10)",
+      "content": "ここに書き込んでください...",
+      "analyze": "保存して分析"
+    },
+    "result": {
+      "title": "Analysis Result",
+      "mood": "Mood Score",
+      "tags": "Tags",
+      "distortions": "Cognitive Distortions",
+      "advice": "AI Advice",
+      "backToHome": "ホームに戻る"
+    }
+  },
+  "history": {
+    "title": "History",
+    "tabs": {
+      "list": "リスト",
+      "week": "週間",
+      "month": "月間"
+    },
+    "search": {
+      "placeholder": "ログを検索...",
+      "results": "{count} 件見つかりました"
+    },
+    "empty": {
+      "week": "この週のログはありません。",
+      "day": "この日のログはありません。",
+      "general": "ログが見つかりません。"
+    },
+    "backToMonth": "月表示に戻る"
+  },
+  "chat": {
+    "title": "AI Partner",
+    "subtitle": "いつでも話しかけてください",
+    "placeholder": "メッセージを入力...",
+    "send": "送信",
+    "header": "AIとの対話",
+    "role": {
+      "user": "あなた",
+      "ai": "AI"
+    },
+    "thinking": "考え中...",
+    "error": "エラーが発生しました。"
+  },
+  "journalCard": {
+    "mood": "気分"
+  }
+}

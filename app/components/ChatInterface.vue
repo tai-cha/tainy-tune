@@ -36,7 +36,7 @@ const sendMessage = async () => {
     messages.value.push({ role: 'assistant', content: response.reply });
   } catch (error) {
     console.error('Chat error:', error);
-    messages.value.push({ role: 'assistant', content: 'Error: Could not get response.' });
+    messages.value.push({ role: 'assistant', content: useNuxtApp().$i18n.t('chat.error') });
   } finally {
     isLoading.value = false;
     await scrollToBottom();
@@ -46,40 +46,27 @@ const sendMessage = async () => {
 
 <template>
   <div :class="$style.container">
-    <h2 :class="$style.title">AI Memory Chat</h2>
-    
+    <h2 :class="$style.title">{{ $t('chat.header') }}</h2>
+
     <div :class="$style.chatArea">
-      <div
-        v-for="(msg, index) in messages"
-        :key="index"
-        :class="[
-          $style.message,
-          msg.role === 'user' ? $style.userMessage : $style.assistantMessage
-        ]"
-      >
-        <div :class="$style.roleLabel">{{ msg.role === 'user' ? 'You' : 'AI' }}</div>
+      <div v-for="(msg, index) in messages" :key="index" :class="[
+        $style.message,
+        msg.role === 'user' ? $style.userMessage : $style.assistantMessage
+      ]">
+        <div :class="$style.roleLabel">{{ msg.role === 'user' ? $t('chat.role.user') : $t('chat.role.ai') }}</div>
         <div :class="$style.content">{{ msg.content }}</div>
       </div>
-      <div v-if="isLoading" :class="$style.loading">Thinking...</div>
+      <div v-if="isLoading" :class="$style.loading">{{ $t('chat.thinking') }}</div>
       <div ref="messagesEndRef" />
     </div>
 
-    <div :class="$style.inputArea">
-      <input
-        v-model="input"
-        @keyup.enter="sendMessage"
-        :class="$style.input"
-        placeholder="Ask about your past journals..."
-        :disabled="isLoading"
-      />
-      <button
-        @click="sendMessage"
-        :class="$style.sendButton"
-        :disabled="!input.trim() || isLoading"
-      >
-        Send
+    <form @submit.prevent="sendMessage" :class="$style.inputArea">
+      <input v-model="input" type="text" :placeholder="$t('chat.placeholder')" :class="$style.input"
+        :disabled="isLoading" />
+      <button type="submit" :class="$style.sendBtn" :disabled="!input.trim() || isLoading">
+        {{ $t('chat.send') }}
       </button>
-    </div>
+    </form>
   </div>
 </template>
 
@@ -87,7 +74,8 @@ const sendMessage = async () => {
 .container {
   display: flex;
   flex-direction: column;
-  height: 500px; /* Fixed height for scroll */
+  height: 500px;
+  /* Fixed height for scroll */
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background-color: #ffffff;
@@ -122,7 +110,8 @@ const sendMessage = async () => {
 
 .userMessage {
   align-self: flex-end;
-  background-color: #eebcbd; /* Soft pinkish/red to match project theme maybe? Or just generic user color */
+  background-color: #eebcbd;
+  /* Soft pinkish/red to match project theme maybe? Or just generic user color */
   background-color: #3182ce;
   color: white;
 }

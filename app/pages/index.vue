@@ -2,8 +2,13 @@
 import { PencilSquareIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline';
 
 // User Greeting
+const { t } = useI18n();
 const hours = new Date().getHours();
-const greeting = hours < 12 ? 'Good Morning' : hours < 18 ? 'Good Afternoon' : 'Good Evening';
+const greeting = hours < 12 
+  ? t('common.greeting.morning') 
+  : hours < 18 
+    ? t('common.greeting.afternoon') 
+    : t('common.greeting.evening');
 
 // Recent Logs (Fetch last 3)
 const { data: recentJournals } = await useFetch('/api/journals', {
@@ -15,7 +20,7 @@ const { data: recentJournals } = await useFetch('/api/journals', {
   <div :class="$style.page">
     <header :class="$style.header">
       <h1 :class="$style.greeting">{{ greeting }}, User.</h1>
-      <p :class="$style.subtitle">How are you feeling today?</p>
+      <p :class="$style.subtitle">{{ $t('dashboard.subtitle') }}</p>
     </header>
 
     <!-- Quick Actions -->
@@ -25,8 +30,8 @@ const { data: recentJournals } = await useFetch('/api/journals', {
           <PencilSquareIcon :class="$style.actionIcon" />
         </div>
         <div :class="$style.actionText">
-          <h3>Write Journal</h3>
-          <p>Record your thoughts</p>
+          <h3>{{ $t('dashboard.quickActions.write.title') }}</h3>
+          <p>{{ $t('dashboard.quickActions.write.desc') }}</p>
         </div>
       </NuxtLink>
 
@@ -35,8 +40,8 @@ const { data: recentJournals } = await useFetch('/api/journals', {
           <ChatBubbleLeftRightIcon :class="$style.actionIcon" />
         </div>
         <div :class="$style.actionText">
-          <h3>AI Partner</h3>
-          <p>Talk it out</p>
+          <h3>{{ $t('dashboard.quickActions.chat.title') }}</h3>
+          <p>{{ $t('dashboard.quickActions.chat.desc') }}</p>
         </div>
       </NuxtLink>
     </div>
@@ -44,13 +49,13 @@ const { data: recentJournals } = await useFetch('/api/journals', {
     <!-- Recent Activity -->
     <div :class="$style.section">
       <div :class="$style.sectionHeader">
-        <h2>Recent Activity</h2>
-        <NuxtLink to="/history" :class="$style.viewAll">View All</NuxtLink>
+        <h2>{{ $t('dashboard.recent.title') }}</h2>
+        <NuxtLink to="/history" :class="$style.viewAll">{{ $t('dashboard.recent.viewAll') }}</NuxtLink>
       </div>
       
       <div :class="$style.list">
         <div v-if="!recentJournals?.length" :class="$style.empty">
-          No logs yet. Start by writing one!
+          {{ $t('dashboard.recent.empty') }}
         </div>
         <JournalCard 
           v-for="journal in recentJournals" 

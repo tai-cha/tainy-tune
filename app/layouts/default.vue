@@ -22,14 +22,21 @@ const isActive = (path: string) => route.path === path;
         TainyTune
       </div>
       <nav :class="$style.nav">
-        <NuxtLink
-          v-for="item in navigation"
-          :key="item.name"
-          :to="item.href"
-          :class="[$style.navItem, isActive(item.href) && $style.active]"
-        >
-          <component :is="item.icon" :class="$style.icon" />
-          <span>{{ item.name }}</span>
+        <NuxtLink to="/" :class="[$style.navItem, isActive('/') && $style.active]">
+          <HomeIcon :class="$style.icon" />
+          <span :class="$style.navLabel">{{ $t('nav.dashboard') }}</span>
+        </NuxtLink>
+        <NuxtLink to="/journal" :class="[$style.navItem, isActive('/journal') && $style.active]">
+          <PencilSquareIcon :class="$style.icon" />
+          <span :class="$style.navLabel">{{ $t('nav.journal') }}</span>
+        </NuxtLink>
+        <NuxtLink to="/chat" :class="[$style.navItem, isActive('/chat') && $style.active]">
+          <ChatBubbleLeftRightIcon :class="$style.icon" />
+          <span :class="$style.navLabel">{{ $t('nav.chat') }}</span>
+        </NuxtLink>
+        <NuxtLink to="/history" :class="[$style.navItem, isActive('/history') && $style.active]">
+          <ClockIcon :class="$style.icon" />
+          <span :class="$style.navLabel">{{ $t('nav.history') }}</span>
         </NuxtLink>
       </nav>
     </aside>
@@ -43,12 +50,8 @@ const isActive = (path: string) => route.path === path;
 
     <!-- Mobile Bottom Navigation -->
     <nav :class="$style.bottomNav">
-      <NuxtLink
-        v-for="item in navigation"
-        :key="item.name"
-        :to="item.href"
-        :class="[$style.bottomNavItem, isActive(item.href) && $style.activeBottom]"
-      >
+      <NuxtLink v-for="item in navigation" :key="item.name" :to="item.href"
+        :class="[$style.bottomNavItem, isActive(item.href) && $style.activeBottom]">
         <component :is="item.icon" :class="$style.icon" />
         <span :class="$style.label">{{ item.name }}</span>
       </NuxtLink>
@@ -64,12 +67,15 @@ const isActive = (path: string) => route.path === path;
   box-sizing: border-box;
 }
 
-.layout *, .layout *::before, .layout *::after {
+.layout *,
+.layout *::before,
+.layout *::after {
   box-sizing: border-box;
 }
 
 .sidebar {
-  display: none; /* Hidden on mobile */
+  display: none;
+  /* Hidden on mobile */
   width: 240px;
   background-color: white;
   border-right: 1px solid #e2e8f0;
@@ -123,7 +129,8 @@ const isActive = (path: string) => route.path === path;
 .main {
   flex: 1;
   padding: 1rem;
-  padding-bottom: 80px; /* Space for bottom nav */
+  padding-bottom: 80px;
+  /* Space for bottom nav */
 }
 
 .container {
@@ -166,7 +173,8 @@ const isActive = (path: string) => route.path === path;
   }
 
   .main {
-    margin-left: 240px; /* Sidebar width */
+    margin-left: 240px;
+    /* Sidebar width */
     padding: 2rem;
   }
 

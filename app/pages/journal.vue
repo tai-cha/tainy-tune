@@ -5,8 +5,8 @@
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <h1 :class="$style.title">New Entry</h1>
-      <p :class="$style.subtitle">How are you feeling right now?</p>
+      <h1 :class="$style.title">{{ $t('journal.title') }}</h1>
+      <p :class="$style.subtitle">{{ $t('journal.subtitle') }}</p>
     </header>
 
     <div :class="$style.formContainer">

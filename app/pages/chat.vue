@@ -5,8 +5,8 @@
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <h1 :class="$style.title">AI Partner</h1>
-      <p :class="$style.subtitle">Talk with your AI companion.</p>
+      <h1 :class="$style.title">{{ $t('chat.title') }}</h1>
+      <p :class="$style.subtitle">{{ $t('chat.subtitle') }}</p>
     </header>
 
     <div :class="$style.chatContainer">

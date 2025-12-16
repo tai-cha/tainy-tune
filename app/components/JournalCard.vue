@@ -26,7 +26,7 @@ const formatDate = (date: string | Date | null) => {
       <div :class="$style.meta">
         <span :class="$style.date">{{ formatDate(journal.created_at) }}</span>
         <span :class="$style.mood" v-if="journal.mood_score">
-          Mood: {{ journal.mood_score }}
+          {{ $t('journalCard.mood') }}: {{ journal.mood_score }}
         </span>
       </div>
     </div>

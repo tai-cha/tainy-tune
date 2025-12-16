@@ -107,22 +107,22 @@ const selectedDayJournals = computed(() => {
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <h1 :class="$style.title">History</h1>
+      <h1 :class="$style.title">{{ $t('history.title') }}</h1>
       
       <div :class="$style.controls">
         <div :class="$style.tabs">
           <button
             @click="viewMode = 'list'"
             :class="[$style.tab, viewMode === 'list' && $style.activeTab]"
-          >List</button>
+          >{{ $t('history.tabs.list') }}</button>
           <button
             @click="viewMode = 'week'"
             :class="[$style.tab, viewMode === 'week' && $style.activeTab]"
-          >Week</button>
+          >{{ $t('history.tabs.week') }}</button>
           <button
             @click="viewMode = 'month'"
             :class="[$style.tab, viewMode === 'month' && $style.activeTab]"
-          >Month</button>
+          >{{ $t('history.tabs.month') }}</button>
         </div>
 
         <div :class="$style.monthNav" v-if="viewMode !== 'list' && viewMode !== 'day'">
@@ -138,7 +138,7 @@ const selectedDayJournals = computed(() => {
           <input
             v-model.debounce.500ms="searchQuery"
             type="text"
-            placeholder="Search logs..."
+            :placeholder="$t('history.search.placeholder')"
             :class="$style.searchInput"
           />
           <button
@@ -149,7 +149,7 @@ const selectedDayJournals = computed(() => {
           >✕</button>
         </div>
         <div v-if="searchQuery" :class="$style.searchStatus">
-          Found {{ journals?.length || 0 }} results
+          {{ $t('history.search.results', { count: journals?.length || 0 }) }}
         </div>
       </div>
     </header>
@@ -202,7 +202,7 @@ const selectedDayJournals = computed(() => {
           :journal="journal" 
         />
         <div v-if="!journals?.length" :class="$style.empty">
-          No logs for this week.
+          {{ $t('history.empty.week') }}
         </div>
       </div>
     </div>
@@ -210,12 +210,12 @@ const selectedDayJournals = computed(() => {
     <!-- Day View -->
     <div v-else-if="viewMode === 'day' && selectedDate" :class="$style.list">
       <div :class="$style.dayHeader">
-        <button @click="viewMode = 'month'" :class="$style.backBtn">← Back to Month</button>
+        <button @click="viewMode = 'month'" :class="$style.backBtn">← {{ $t('history.backToMonth') }}</button>
         <h2>{{ format(selectedDate, 'yyyy年M月d日', { locale: ja }) }}</h2>
       </div>
 
       <div v-if="!selectedDayJournals.length" :class="$style.empty">
-        No logs found for this day.
+        {{ $t('history.empty.day') }}
       </div>
       <JournalCard 
         v-for="journal in selectedDayJournals" 
@@ -227,7 +227,7 @@ const selectedDayJournals = computed(() => {
     <!-- List View -->
     <div v-else :class="$style.list">
       <div v-if="!journals?.length" :class="$style.empty">
-        No logs found.
+        {{ $t('history.empty.general') }}
       </div>
       <JournalCard 
         v-for="journal in journals" 

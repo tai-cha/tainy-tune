@@ -2,7 +2,7 @@ import { journals } from '../db/schema';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { env } from '../../utils/env';
-import { desc, and, gte, lte, ilike } from 'drizzle-orm';
+import { desc, and, gte, lte, ilike, or, sql } from 'drizzle-orm';
 
 const client = postgres(env.DATABASE_URL);
 const db = drizzle(client);
@@ -18,7 +18,14 @@ export default defineEventHandler(async (event) => {
   const filters = [];
   if (startDate) filters.push(gte(journals.created_at, new Date(startDate)));
   if (endDate) filters.push(lte(journals.created_at, new Date(endDate)));
-  if (search) filters.push(ilike(journals.content, `%${search}%`));
+  if (search) {
+    const searchPattern = `%${search}%`;
+    filters.push(or(
+      ilike(journals.content, searchPattern),
+      sql`array_to_string(${journals.tags}, ' ') ILIKE ${searchPattern}`,
+      sql`array_to_string(${journals.distortion_tags}, ' ') ILIKE ${searchPattern}`
+    ));
+  }
 
   try {
     let queryBuilder = db
