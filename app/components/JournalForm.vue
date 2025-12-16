@@ -68,32 +68,12 @@ async function submitJournal() {
     </form>
 
     <!-- RESULT CARD -->
-    <div v-if="result" :class="$style.resultCard">
-      <div :class="$style.resultHeader">
-        <h3>Analyze Result</h3>
-        <div :class="$style.moodBadge">{{ $t('journal.result.mood') }}: {{ result.mood_score }}</div>
-      </div>
+    <div v-if="result" :class="$style.resultSection">
+      <h3 :class="$style.resultTitle">Analyze Result</h3>
+      <JournalCard :journal="result" />
 
-      <div :class="$style.resultBody">
-        <div :class="$style.tags" v-if="result.tags?.length">
-          <span v-for="tag in result.tags" :key="tag" :class="$style.tag">#{{ tag }}</span>
-        </div>
-
-        <div :class="$style.distortions" v-if="result.distortion_tags?.length">
-          <h4>{{ $t('journal.result.distortions') }}:</h4>
-          <ul>
-            <li v-for="d in result.distortion_tags" :key="d">{{ d }}</li>
-          </ul>
-        </div>
-
-        <div :class="$style.advice" v-if="result.advice">
-          <h4>{{ $t('journal.result.advice') }}:</h4>
-          <p>{{ result.advice }}</p>
-        </div>
-
-        <div :class="$style.resultActions">
-          <NuxtLink to="/" :class="$style.homeLink">{{ $t('journal.result.backToHome') }}</NuxtLink>
-        </div>
+      <div :class="$style.resultActions">
+        <NuxtLink to="/" :class="$style.homeLink">{{ $t('journal.result.backToHome') }}</NuxtLink>
       </div>
     </div>
   </div>
@@ -123,41 +103,7 @@ async function submitJournal() {
   margin-bottom: 1.5rem;
 }
 
-.feedback {
-  background: #f0f9ff;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
 
-.feedbackTitle {
-  color: #0369a1;
-  font-size: 0.9rem;
-  margin: 0 0 0.5rem 0;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.tag {
-  background: #edf2f7;
-  color: #4a5568;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-}
-
-.distortion {
-  background: #fff5f5;
-  color: #c53030;
-  border: 1px solid #feb2b2;
-}
 
 .field {
   display: flex;
@@ -237,5 +183,38 @@ async function submitJournal() {
 .moodBad {
   color: #f97316;
   font-weight: 700;
+}
+
+.resultSection {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.resultTitle {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin: 0;
+  padding-left: 0.5rem;
+  border-left: 4px solid #3b82f6;
+  font-weight: 700;
+}
+
+.resultActions {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.homeLink {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.homeLink:hover {
+  text-decoration: underline;
+  color: #3b82f6;
 }
 </style>
