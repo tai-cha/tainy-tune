@@ -19,7 +19,10 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <h1 :class="$style.greeting">{{ $t('common.greeting.format', { greeting: greeting, name: $t('common.user') }) }}
+      <h1 :class="$style.greeting">
+        <ClientOnly>
+          {{ $t('common.greeting.format', { greeting: greeting, name: $t('common.user') }) }}
+        </ClientOnly>
       </h1>
       <p :class="$style.subtitle">{{ $t('dashboard.subtitle') }}</p>
     </header>
