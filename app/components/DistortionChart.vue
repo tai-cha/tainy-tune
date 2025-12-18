@@ -28,8 +28,7 @@ const { t, te } = useI18n();
 const chartData = computed(() => {
   // Sort by count desc
   const sortedEntries = Object.entries(props.counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10); // Top 10
+    .sort((a, b) => b[1] - a[1]);
 
   return {
     labels: sortedEntries.map(([key]) => {

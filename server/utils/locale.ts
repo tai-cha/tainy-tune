@@ -11,6 +11,13 @@ const LOCALES: Record<string, { distortions: DistortionMap }> = {
 };
 
 /**
+ * Returns all valid distortion keys defined in the master locale (ja).
+ */
+export const getValidDistortionKeys = (): string[] => {
+  return Object.keys(LOCALES.ja.distortions);
+};
+
+/**
  * Searches all configured locales for distortion terms that match the search query.
  * Returns an array of unique distortion keys (e.g., 'all_or_nothing').
  */

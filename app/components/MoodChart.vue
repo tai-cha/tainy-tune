@@ -29,7 +29,7 @@ const props = defineProps<{
 }>();
 
 const chartData = computed(() => ({
-  labels: props.data.map(d => d.date.slice(5)), // MM-DD
+  labels: props.data.map(d => d.date.slice(5).replace('-', '/')), // MM/DD
   datasets: [{
     label: 'Mood Score',
     data: props.data.map(d => d.score),
