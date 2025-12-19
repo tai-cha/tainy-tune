@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps<{
   journal: {
@@ -10,13 +11,53 @@ const props = defineProps<{
     tags: string[] | null;
     distortion_tags: string[] | null;
     advice: string | null;
+    is_analysis_failed: boolean | null;
     created_at: string | Date | null;
-  }
+  };
+  hideDiscussion?: boolean;
 }>();
 
 const formatDate = (date: string | Date | null) => {
   if (!date) return '';
   return format(new Date(date), 'M/d(E) HH:mm', { locale: ja });
+};
+
+const router = useRouter();
+const isRetrying = ref(false);
+const isDeleting = ref(false);
+
+const startDiscussion = () => {
+  router.push({ path: '/chat/new', query: { contextId: props.journal.id } });
+};
+
+const handleRetry = async () => {
+  if (isRetrying.value) return;
+  isRetrying.value = true;
+  try {
+    await $fetch(`/api/journals/${props.journal.id}/analyze`, { method: 'POST' });
+    // Global refresh to update the list
+    await refreshNuxtData();
+  } catch (error: any) {
+    alert(error.message || 'Retry failed');
+  } finally {
+    isRetrying.value = false;
+  }
+};
+
+const handleDelete = async () => {
+  if (!confirm('本当に削除してもよろしいですか？')) return;
+
+  if (isDeleting.value) return;
+  isDeleting.value = true;
+  try {
+    await $fetch(`/api/journals/${props.journal.id}`, { method: 'DELETE' });
+    // Global refresh to update the list
+    await refreshNuxtData();
+  } catch (error: any) {
+    alert(error.message || 'Delete failed');
+  } finally {
+    isDeleting.value = false;
+  }
 };
 </script>
 
@@ -24,7 +65,7 @@ const formatDate = (date: string | Date | null) => {
   <div :class="$style.card">
     <div :class="$style.header">
       <div :class="$style.meta">
-        <span :class="$style.date">
+        <span :class="$style.metaText">
           <ClientOnly>
             {{ formatDate(journal.created_at) }}
           </ClientOnly>
@@ -32,6 +73,16 @@ const formatDate = (date: string | Date | null) => {
         <span :class="$style.mood" v-if="journal.mood_score">
           {{ $t('journalCard.mood') }}: {{ journal.mood_score }}
         </span>
+      </div>
+
+      <div :class="$style.actions">
+        <button :class="$style.actionBtn" @click="handleDelete" :disabled="isDeleting" title="削除">
+          <TrashIcon :class="$style.actionIcon" />
+        </button>
+        <button v-if="!hideDiscussion" :class="$style.actionBtn" @click="startDiscussion"
+          :title="$t('journal.discuss')">
+          <ChatBubbleBottomCenterTextIcon :class="$style.actionIcon" />
+        </button>
       </div>
     </div>
 
@@ -49,6 +100,11 @@ const formatDate = (date: string | Date | null) => {
     <div :class="$style.advice" v-if="journal.advice">
       <div :class="$style.adviceIcon">💡</div>
       <p :class="$style.adviceText">{{ journal.advice }}</p>
+
+      <button v-if="journal.is_analysis_failed" @click="handleRetry" :class="$style.retryBtn" :disabled="isRetrying">
+        <ArrowPathIcon :class="[$style.retryIcon, isRetrying && $style.spin]" />
+        {{ isRetrying ? '分析中...' : '再分析' }}
+      </button>
     </div>
   </div>
 </template>
@@ -132,5 +188,70 @@ const formatDate = (date: string | Date | null) => {
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  color: #64748b;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.actionBtn:hover {
+  background: #e2e8f0;
+  color: #3b82f6;
+}
+
+.actionIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.retryBtn {
+  margin-left: auto;
+  background: white;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.retryBtn:hover:not(:disabled) {
+  background: #dcfce7;
+}
+
+.retryIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

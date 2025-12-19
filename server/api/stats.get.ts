@@ -1,9 +1,9 @@
-import { journals } from '../db/schema';
+import { journals } from '@server/db/schema';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { env } from '../../utils/env';
+import { env } from '~/utils/env';
 import { desc, and, gte, lte, sql } from 'drizzle-orm';
-import { getValidDistortionKeys } from '../utils/locale';
+import { getValidDistortionKeys } from '@server/utils/locale';
 
 const client = postgres(env.DATABASE_URL);
 const db = drizzle(client);

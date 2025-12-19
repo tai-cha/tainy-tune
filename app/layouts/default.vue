@@ -1,22 +1,105 @@
 <script setup lang="ts">
-import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon, ChartPieIcon } from '@heroicons/vue/24/outline';
+import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon, ChartPieIcon, TrashIcon, EllipsisHorizontalIcon, StarIcon } from '@heroicons/vue/24/outline';
+import { StarIcon as StarIconSolid } from '@heroicons/vue/24/solid';
 import { useRoute } from 'vue-router';
+import { ref, watch } from 'vue';
 
 const route = useRoute();
+const { t } = useI18n();
 
 const navigation = [
-  { name: 'Home', href: '/', icon: HomeIcon },
-  { name: 'Journal', href: '/journal', icon: PencilSquareIcon },
-  { name: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
-  { name: 'History', href: '/history', icon: ClockIcon },
-  { name: 'Insights', href: '/insights', icon: ChartPieIcon },
+  { name: 'nav.dashboard', href: '/', icon: HomeIcon },
+  { name: 'nav.journal', href: '/journal', icon: PencilSquareIcon },
+  { name: 'nav.chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
+  { name: 'nav.history', href: '/history', icon: ClockIcon },
+  { name: 'nav.insights', href: '/insights', icon: ChartPieIcon },
 ];
 
 const isActive = (path: string) => route.path === path;
+
+// Fetch Recent Threads
+const { data: threads, refresh } = await useFetch('/api/chat/threads', { key: 'threads' });
+
+// Ensure threads list is updated when navigating (e.g. after creating new chat)
+watch(() => route.path, () => {
+  refresh();
+});
+
+const activeThread = ref<any>(null);
+const menuPos = ref({ top: 0, left: 0 });
+
+const showMenu = (event: MouseEvent, thread: any) => {
+  event.stopPropagation();
+  if (activeThread.value?.id === thread.id) {
+    activeThread.value = null;
+    return;
+  }
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  activeThread.value = thread;
+  // Position menu below button, aligned to right
+  menuPos.value = {
+    top: rect.bottom + 5,
+    left: rect.left
+  };
+};
+
+const closeMenu = () => {
+  activeThread.value = null;
+};
+
+const pinThread = async () => {
+  if (!activeThread.value) return;
+  const thread = activeThread.value;
+  closeMenu();
+  try {
+    const isCurrentlyPinned = !!thread.pinned_at;
+    await $fetch(`/api/chat/threads/${thread.id}`, {
+      method: 'PATCH',
+      body: { isPinned: !isCurrentlyPinned }
+    });
+    refresh();
+  } catch (e) {
+    alert('Failed to update thread');
+  }
+};
+
+const renameThread = async () => {
+  if (!activeThread.value) return;
+  const thread = activeThread.value;
+  closeMenu();
+  const newTitle = prompt(t('chat.renamePrompt'), thread.title);
+  if (newTitle && newTitle !== thread.title) {
+    try {
+      await $fetch(`/api/chat/threads/${thread.id}`, {
+        method: 'PATCH',
+        body: { title: newTitle }
+      });
+      refresh();
+    } catch (e) {
+      alert('Failed to rename thread');
+    }
+  }
+};
+
+const deleteThread = async () => {
+  if (!activeThread.value) return;
+  const id = activeThread.value.id;
+  closeMenu();
+  if (!confirm(t('chat.confirmDelete'))) return;
+  try {
+    await $fetch(`/api/chat/threads/${id}`, { method: 'DELETE' });
+    refresh();
+    if (route.params.id && Number(route.params.id) === id) {
+      navigateTo('/chat');
+    }
+  } catch (e) {
+    alert(t('chat.deleteError'));
+  }
+};
 </script>
 
 <template>
-  <div :class="$style.layout">
+  <div :class="$style.layout" @click="closeMenu">
     <!-- Desktop Sidebar -->
     <aside :class="$style.sidebar">
       <div :class="$style.logo">
@@ -31,6 +114,7 @@ const isActive = (path: string) => route.path === path;
           <PencilSquareIcon :class="$style.icon" />
           <span :class="$style.navLabel">{{ $t('nav.journal') }}</span>
         </NuxtLink>
+        <!-- New Chat Button link -->
         <NuxtLink to="/chat" :class="[$style.navItem, isActive('/chat') && $style.active]">
           <ChatBubbleLeftRightIcon :class="$style.icon" />
           <span :class="$style.navLabel">{{ $t('nav.chat') }}</span>
@@ -43,6 +127,27 @@ const isActive = (path: string) => route.path === path;
           <ChartPieIcon :class="$style.icon" />
           <span :class="$style.navLabel">{{ $t('nav.insights') }}</span>
         </NuxtLink>
+
+        <!-- Threads List -->
+        <div :class="$style.separator"></div>
+        <div :class="$style.threadsHeader">{{ $t('chat.recentThreads') }}</div>
+
+        <div :class="$style.threadList">
+          <div v-for="thread in threads" :key="thread.id" :class="$style.threadItemWrapper">
+            <NuxtLink :to="`/chat/${thread.id}`"
+              :class="[$style.threadLink, isActive(`/chat/${thread.id}`) && $style.activeThread]">
+              <span :class="$style.threadTitle">{{ thread.title }}</span>
+              <StarIconSolid v-if="thread.pinned_at" :class="$style.pinnedIcon" />
+            </NuxtLink>
+
+            <button @click="showMenu($event, thread)" :class="$style.menuBtn">
+              <EllipsisHorizontalIcon :class="$style.iconXs" />
+            </button>
+          </div>
+          <div v-if="!threads?.length" :class="$style.noThreads">
+            {{ $t('chat.noThreads') }}
+          </div>
+        </div>
       </nav>
     </aside>
 
@@ -58,9 +163,28 @@ const isActive = (path: string) => route.path === path;
       <NuxtLink v-for="item in navigation" :key="item.name" :to="item.href"
         :class="[$style.bottomNavItem, isActive(item.href) && $style.activeBottom]">
         <component :is="item.icon" :class="$style.icon" />
-        <span :class="$style.label">{{ item.name }}</span>
+        <span :class="$style.label">{{ $t(item.name) }}</span>
       </NuxtLink>
     </nav>
+
+    <!-- Context Menu Teleport -->
+    <Teleport to="body">
+      <div v-if="activeThread" :class="$style.menuDropdown"
+        :style="{ top: `${menuPos.top}px`, left: `${menuPos.left}px` }">
+        <button @click="pinThread" :class="$style.menuItem">
+          <component :is="activeThread.pinned_at ? StarIcon : StarIconSolid" :class="$style.iconXs" />
+          {{ activeThread.pinned_at ? $t('chat.unpin') : $t('chat.pin') }}
+        </button>
+        <button @click="renameThread" :class="$style.menuItem">
+          <PencilSquareIcon :class="$style.iconXs" />
+          {{ $t('chat.rename') }}
+        </button>
+        <button @click="deleteThread" :class="[$style.menuItem, $style.menuItemRed]">
+          <TrashIcon :class="$style.iconXs" />
+          {{ $t('chat.delete') }}
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -80,7 +204,6 @@ const isActive = (path: string) => route.path === path;
 
 .sidebar {
   display: none;
-  /* Hidden on mobile */
   width: 240px;
   background-color: white;
   border-right: 1px solid #e2e8f0;
@@ -131,11 +254,163 @@ const isActive = (path: string) => route.path === path;
   height: 24px;
 }
 
+.separator {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 1rem 0;
+}
+
+.threadsHeader {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.threadList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.threadItemWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-right: 0.5rem;
+  position: relative;
+}
+
+.threadLink {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: #475569;
+  text-decoration: none;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.threadLink:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.activeThread {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.threadTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pinnedIcon {
+  width: 14px;
+  height: 14px;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.menuContainer {
+  position: relative;
+}
+
+.menuBtn {
+  background: transparent;
+  border: none;
+  color: #cbd5e0;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.threadItemWrapper:hover .menuBtn,
+.menuBtn:focus,
+.menuDropdown {
+  opacity: 1;
+}
+
+.menuBtn:hover {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.menuDropdown {
+  position: fixed;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 9999;
+  min-width: 140px;
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #475569;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.menuItem:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.menuItemRed {
+  color: #ef4444;
+}
+
+.menuItemRed:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.iconXs {
+  width: 16px;
+  height: 16px;
+}
+
+.noThreads {
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  color: #cbd5e0;
+  font-style: italic;
+}
+
 .main {
   flex: 1;
   padding: 1rem;
   padding-bottom: 80px;
-  /* Space for bottom nav */
 }
 
 .container {
@@ -143,7 +418,6 @@ const isActive = (path: string) => route.path === path;
   margin: 0 auto;
 }
 
-/* Mobile Bottom Nav */
 .bottomNav {
   display: flex;
   position: fixed;
@@ -179,7 +453,6 @@ const isActive = (path: string) => route.path === path;
 
   .main {
     margin-left: 240px;
-    /* Sidebar width */
     padding: 2rem;
   }
 

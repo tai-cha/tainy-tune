@@ -53,7 +53,8 @@
       "distortions": "Cognitive Distortions",
       "advice": "AI Advice",
       "backToHome": "ホームに戻る"
-    }
+    },
+    "discuss": "この記録について話す"
   },
   "history": {
     "title": "History",
@@ -84,7 +85,21 @@
       "ai": "AI"
     },
     "thinking": "考え中...",
-    "error": "エラーが発生しました。"
+    "error": "エラーが発生しました。",
+    "recentThreads": "最近のチャット",
+    "noThreads": "履歴がありません",
+    "referencing": "参照中の記録",
+    "newChat": "新しいチャット",
+    "discussTitle": "日記について話す",
+    "confirmDelete": "このチャットを削除してもよろしいですか？",
+    "deleteError": "削除に失敗しました",
+    "deleteThread": "チャットを削除",
+    "pin": "固定",
+    "unpin": "固定解除",
+    "rename": "名前を変更",
+    "renamePrompt": "新しい名前を入力してください",
+    "delete": "削除",
+    "contextLabel": "参照中の記録"
   },
   "journalCard": {
     "mood": "気分"

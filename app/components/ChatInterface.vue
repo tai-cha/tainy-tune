@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, watch } from 'vue';
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
 
+const props = defineProps<{
+  initialMessages?: Message[];
+  threadId?: number;
+  onSend?: (message: string, contextIds?: number[]) => Promise<void>;
+}>();
+
+// Remove emit - we use callback for async handling
+// const emit = defineEmits<{ ... }>();
+
 const input = ref('');
-const messages = ref<Message[]>([]);
+const messages = ref<Message[]>(props.initialMessages ? [...props.initialMessages] : []);
 const isLoading = ref(false);
 const messagesEndRef = ref<HTMLElement | null>(null);
 
@@ -19,29 +28,53 @@ const scrollToBottom = async () => {
 };
 
 const sendMessage = async () => {
-  if (!input.value.trim() || isLoading.value) return;
+  const text = input.value.trim();
+  if (!text || isLoading.value) return;
 
-  const userMessage = input.value.trim();
-  messages.value.push({ role: 'user', content: userMessage });
-  input.value = '';
+  if (!props.onSend) {
+    console.error('onSend prop is missing');
+    return;
+  }
+
   isLoading.value = true;
   await scrollToBottom();
 
   try {
-    const response = await $fetch<{ reply: string }>('/api/chat', {
-      method: 'POST',
-      body: { message: userMessage },
-    });
+    // Await the parent's action (API call)
+    await props.onSend(text);
 
-    messages.value.push({ role: 'assistant', content: response.reply });
-  } catch (error) {
+    // Only clear input on success
+    input.value = '';
+
+    // Note: We expect parent to update `initialMessages`, which triggers the watcher to update `messages`.
+  } catch (error: any) {
     console.error('Chat error:', error);
-    messages.value.push({ role: 'assistant', content: useNuxtApp().$i18n.t('chat.error') });
+    // Show error message
+    // If it's 429, the error message from backend is user-friendly.
+    const msg = error.data?.message || error.message || useNuxtApp().$i18n.t('chat.error');
+    alert(msg);
+    // Input remains populated for retry
   } finally {
     isLoading.value = false;
     await scrollToBottom();
   }
 };
+
+// Watch for prop updates (from polling or refresh) and update local messages
+watch(() => props.initialMessages, (newVal) => {
+  if (newVal) {
+    messages.value = [...newVal];
+    // scrollToBottom(); // moved to sendMessage or manual trigger? 
+    // Better to scroll if new message added.
+    if (newVal.length > (messages.value.length || 0)) {
+      scrollToBottom();
+    } else {
+      // Deep check? For now just scroll.
+      scrollToBottom();
+    }
+  }
+}, { deep: true });
+
 </script>
 
 <template>
@@ -74,7 +107,7 @@ const sendMessage = async () => {
 .container {
   display: flex;
   flex-direction: column;
-  height: 500px;
+  height: 100%;
   /* Fixed height for scroll */
   border: 1px solid #e2e8f0;
   border-radius: 8px;

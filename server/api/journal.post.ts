@@ -1,9 +1,9 @@
-import { journals } from '../db/schema';
-import { analyzeJournal } from '../utils/ai';
-import { getEmbedding } from '../utils/embedding';
+import { journals } from '@server/db/schema';
+import { analyzeJournal } from '@server/utils/ai';
+import { getEmbedding } from '@server/utils/embedding';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { env } from '../../utils/env';
+import { env } from '~/utils/env';
 
 // Initialize Drizzle client
 // Note: In a real production app, you might want to move this to a shared db client file
@@ -42,6 +42,7 @@ export default defineEventHandler(async (event) => {
         tags: aiAnalysis.tags,
         distortion_tags: aiAnalysis.distortion_tags,
         advice: aiAnalysis.advice,
+        is_analysis_failed: aiAnalysis.is_analysis_failed,
       })
       .returning();
 

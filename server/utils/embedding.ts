@@ -1,18 +1,29 @@
-import { pipeline, env } from '@xenova/transformers';
+import { execFile } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Configuration to prevent WASM fallback and ensure local execution
-env.allowLocalModels = false; // Allow downloading from HF Hub if not found (default behavior)
-env.useBrowserCache = false; // We are in Node.js
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const globalAny: any = global;
-let extractor = globalAny._extractor || null;
+// Worker script path - point to source directly in dev
+const workerPath = path.join(process.cwd(), 'server', 'utils', 'embedding-worker.mjs');
 
-export const getEmbedding = async (text: string): Promise<number[]> => {
-  if (!extractor) {
-    extractor = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small');
-    globalAny._extractor = extractor;
-  }
-
-  const output = await extractor(text, { pooling: 'mean', normalize: true });
-  return Array.from(output.data);
+export const getEmbedding = (text: string): Promise<number[]> => {
+  return new Promise((resolve, reject) => {
+    // Call the worker script
+    execFile(process.execPath, [workerPath, text], (error, stdout, stderr) => {
+      if (error) {
+        console.error('Embedding worker error:', stderr);
+        reject(error);
+        return;
+      }
+      try {
+        const embedding = JSON.parse(stdout.trim());
+        resolve(embedding);
+      } catch (e) {
+        console.error('Failed to parse embedding output:', stdout);
+        reject(new Error('Invalid embedding output'));
+      }
+    });
+  });
 };

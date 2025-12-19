@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { z } from 'zod';
-import { env } from '../../utils/env';
+import { env } from '~/utils/env';
 
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
@@ -22,7 +22,8 @@ const model = genAI.getGenerativeModel({
 
 export type AnalysisResult = z.infer<typeof AnalysisSchema>;
 
-export async function analyzeJournal(content: string): Promise<AnalysisResult> {
+export async function analyzeJournal(content: string): Promise<AnalysisResult & { is_analysis_failed: boolean }> {
+  // ... (prompt code is omitted, keep it same)
   const prompt = `
     Analyze the following journal entry written by a user with ADHD traits.
     
@@ -51,7 +52,8 @@ export async function analyzeJournal(content: string): Promise<AnalysisResult> {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
     const json = JSON.parse(text);
-    return AnalysisSchema.parse(json);
+    const data = AnalysisSchema.parse(json);
+    return { ...data, is_analysis_failed: false };
   } catch (error) {
     console.error('AI Analysis failed:', error);
     // Return safe fallback
@@ -60,6 +62,7 @@ export async function analyzeJournal(content: string): Promise<AnalysisResult> {
       tags: [],
       distortion_tags: [],
       advice: '分析に失敗しました。',
+      is_analysis_failed: true,
     };
   }
 }

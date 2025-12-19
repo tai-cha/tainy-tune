@@ -1,8 +1,14 @@
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
 const require = createRequire(import.meta.url);
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  alias: {
+    '@server': fileURLToPath(new URL('./server', import.meta.url)),
+    '@app': fileURLToPath(new URL('./app', import.meta.url)),
+    '~': fileURLToPath(new URL('./', import.meta.url)),
+  },
   compatibilityDate: '2025-07-15',
   devServer: {
     host: '0.0.0.0',

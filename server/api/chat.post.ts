@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getEmbedding } from '../utils/embedding';
-import { searchSimilarJournals } from '../utils/retrieval';
-import { env } from '../../utils/env';
+import { getEmbedding } from '@server/utils/embedding';
+import { searchSimilarJournals } from '@server/utils/retrieval';
+import { env } from '~/utils/env';
 
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });

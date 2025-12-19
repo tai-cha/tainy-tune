@@ -1,8 +1,8 @@
 import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
-import { journals } from '../db/schema';
+import { journals } from '@server/db/schema';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { env } from '../../utils/env';
+import { env } from '~/utils/env';
 
 const client = postgres(env.DATABASE_URL);
 const db = drizzle(client);

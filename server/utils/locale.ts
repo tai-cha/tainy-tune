@@ -1,4 +1,4 @@
-import ja from '../../i18n/locales/ja.json';
+import ja from '~/i18n/locales/ja.json';
 
 // Type for the distortion map structure
 type DistortionMap = Record<string, string>;

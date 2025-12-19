@@ -15,6 +15,27 @@
       "when": 1765170493291,
       "tag": "0001_legal_ultimo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766038014985,
+      "tag": "0002_serious_plazm",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1766038236839,
+      "tag": "0003_brief_harry_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1766051881139,
+      "tag": "0004_flaky_christian_walker",
+      "breakpoints": true
     }
   ]
 }
