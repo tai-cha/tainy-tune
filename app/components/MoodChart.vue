@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Line } from 'vue-chartjs';
+import { eachDayOfInterval, format, parseISO, min, max } from 'date-fns';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,17 +29,36 @@ const props = defineProps<{
   }[];
 }>();
 
-const chartData = computed(() => ({
-  labels: props.data.map(d => d.date.slice(5).replace('-', '/')), // MM/DD
-  datasets: [{
-    label: 'Mood Score',
-    data: props.data.map(d => d.score),
-    borderColor: '#3b82f6',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    tension: 0.3,
-    fill: true,
-  }]
-}));
+
+
+const chartData = computed(() => {
+  if (props.data.length === 0) return { labels: [], datasets: [] };
+
+  const dates = props.data.map(d => parseISO(d.date));
+  const minDate = min(dates);
+  const maxDate = max(dates);
+
+  const allDates = eachDayOfInterval({ start: minDate, end: maxDate });
+
+  // Map for quick lookup
+  const dataMap = new Map(props.data.map(d => [d.date, d.score]));
+
+  return {
+    labels: allDates.map(d => format(d, 'MM/dd')),
+    datasets: [{
+      label: 'Mood Score',
+      data: allDates.map(d => {
+        const key = format(d, 'yyyy-MM-dd');
+        return dataMap.get(key) ?? null;
+      }),
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      tension: 0.3,
+      fill: true,
+      spanGaps: true, // Connect lines across gaps (optional, remove if gaps preferred)
+    }]
+  };
+});
 
 const chartOptions = {
   responsive: true,
