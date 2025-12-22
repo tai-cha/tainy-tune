@@ -1,14 +1,18 @@
+---
+trigger: always_on
+---
+
 # Rule: Artifact Maintenance
 
-To maintain a reliable source of truth for the project state, you MUST update the following artifacts in the `.agent/` directory whenever relevant work is completed.
+To maintain a reliable source of truth for the project state, you MUST update the following artifacts in the `.agent/docs` directory whenever relevant work is completed.
 
-## 1. Roadmap (`.agent/roadmap.md`)
+## 1. Roadmap (`.agent/docs/roadmap.md`)
 *   **When to update**: immediately after finishing a Phase or a major feature within a Phase.
 *   **Action**: 
     *   Mark completed items with `[x]`.
     *   Update the "Current Status" or move active tasks if necessary.
 
-## 2. Walkthrough (`.agent/walkthrough.md`)
+## 2. Walkthrough (`.agent/docs/walkthrough.md`)
 *   **When to update**: after implementing a new feature or changing functionality.
 *   **Action**: 
     *   Add or update the corresponding section to reflect the *current* system behavior.
