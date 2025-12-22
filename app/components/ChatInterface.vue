@@ -117,8 +117,8 @@ watch(() => props.initialMessages, (newVal) => {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  border-bottom: 1px solid #e2e8f0;
-  background-color: #f7fafc;
+  border-bottom: 2px solid var(--color-bg-page);
+  background-color: white;
 }
 
 .chatArea {
@@ -140,16 +140,14 @@ watch(() => props.initialMessages, (newVal) => {
 
 .userMessage {
   align-self: flex-end;
-  background-color: #eebcbd;
-  /* Soft pinkish/red to match project theme maybe? Or just generic user color */
-  background-color: #3182ce;
+  background-color: var(--color-primary);
   color: white;
 }
 
 .assistantMessage {
   align-self: flex-start;
-  background-color: #edf2f7;
-  color: #2d3748;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-main);
 }
 
 .roleLabel {
@@ -176,27 +174,10 @@ watch(() => props.initialMessages, (newVal) => {
 
 
 
-.sendButton {
-  padding: 0.5rem 1rem;
-  background-color: #38a169;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-}
 
-.sendBtn {
-  /* Inherits from global btn-primary */
-}
 
-.sendBtn:hover:not(:disabled) {
-  background-color: #2f855a;
-}
 
-.sendBtn:disabled {
-  background-color: #a0aec0;
-  cursor: not-allowed;
-}
+
+/* .sendBtn is styled by global .btn-primary */
 </style>
 ```

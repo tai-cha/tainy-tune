@@ -82,13 +82,13 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 
 .greeting {
   font-size: 2rem;
-  color: #2d3748;
+  color: var(--color-text-main);
   margin: 0;
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  color: #718096;
+  color: var(--color-text-muted);
   font-size: 1.1rem;
 }
 
@@ -110,19 +110,19 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 
 
 .actionIconBg {
-  background: #ebf8ff;
+  background: var(--color-bg-primary-light);
   width: 48px;
   height: 48px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3182ce;
+  color: var(--color-primary);
 }
 
 .chatBg {
-  background: #f0fff4;
-  color: #38a169;
+  background: var(--color-bg-success-light);
+  color: var(--color-success);
 }
 
 .actionIcon {
@@ -132,14 +132,14 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 
 .actionText h3 {
   margin: 0;
-  color: #2d3748;
+  color: var(--color-text-main);
   font-size: 1.1rem;
   margin-bottom: 0.25rem;
 }
 
 .actionText p {
   margin: 0;
-  color: #718096;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
@@ -158,12 +158,12 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 
 .sectionHeader h2 {
   font-size: 1.4rem;
-  color: #2d3748;
+  color: var(--color-text-main);
   margin: 0;
 }
 
 .viewAll {
-  color: #3182ce;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
@@ -177,7 +177,7 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 
 .empty {
   text-align: center;
-  color: #a0aec0;
+  color: var(--color-text-muted);
   padding: 2rem;
   background: #f7fafc;
   border-radius: 12px;

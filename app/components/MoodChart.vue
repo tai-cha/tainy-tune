@@ -31,6 +31,13 @@ const props = defineProps<{
 
 
 
+const getStyle = (name: string) => {
+  if (import.meta.client) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  return '#3b82f6';
+};
+
 const chartData = computed(() => {
   if (props.data.length === 0) return { labels: [], datasets: [] };
 
@@ -43,6 +50,9 @@ const chartData = computed(() => {
   // Map for quick lookup
   const dataMap = new Map(props.data.map(d => [d.date, d.score]));
 
+  // Use Primary color for the trend line
+  const primary = getStyle('--color-primary');
+
   return {
     labels: allDates.map(d => format(d, 'MM/dd')),
     datasets: [{
@@ -51,8 +61,8 @@ const chartData = computed(() => {
         const key = format(d, 'yyyy-MM-dd');
         return dataMap.get(key) ?? null;
       }),
-      borderColor: '#3b82f6',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderColor: primary,
+      backgroundColor: primary + '1A', // 10% opacity (approx if hex) - simplified
       tension: 0.3,
       fill: true,
       spanGaps: true, // Connect lines across gaps (optional, remove if gaps preferred)

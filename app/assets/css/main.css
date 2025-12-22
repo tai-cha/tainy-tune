@@ -8,13 +8,34 @@
   --color-text-muted: #64748b;
   --color-border: #e2e8f0;
 
+  /* Semantic Colors */
+  --color-danger: #e53e3e;
+  --color-success: #22c55e;
+  --color-warning: #f97316;
+  --color-info: #3b82f6;
+
+  /* Mood Colors */
+  --color-mood-good: var(--color-primary);
+  --color-mood-normal: var(--color-success);
+  --color-mood-bad: var(--color-warning);
+  --color-distortion: #be123c;
+  --color-distortion-soft: #fb7185;
+
+  /* Background Accents */
+  --color-bg-primary-light: #eff6ff;
+  /* Light Blue for Primary */
+  --color-bg-success-light: #f0fdf4;
+  --color-bg-warning-light: #fff7ed;
+  --color-bg-info-light: #eff6ff;
+  --color-bg-danger-light: #fff1f2;
+
   /* Borders & Shadows (The Unified "Soft Border + Elevation" Look) */
   --radius-md: 12px;
   --radius-sm: 8px;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --border-subtle: 1px solid var(--color-border);
-  
+
   /* Inputs */
   --input-bg: #fff;
   --input-border: var(--color-border);

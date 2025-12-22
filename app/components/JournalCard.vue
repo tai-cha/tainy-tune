@@ -24,6 +24,13 @@ const formatDate = (date: string | Date | null) => {
   return format(new Date(date), 'M/d(E) HH:mm', { locale: ja });
 };
 
+const style = useCssModule();
+const getMoodClass = (score: number) => {
+  if (score >= 8) return [style.moodBase, style.moodGood];
+  if (score >= 5) return [style.moodBase, style.moodNormal];
+  return [style.moodBase, style.moodBad];
+};
+
 const router = useRouter();
 const isRetrying = ref(false);
 const isDeleting = ref(false);
@@ -72,7 +79,7 @@ const handleDelete = async () => {
             {{ formatDate(journal.created_at) }}
           </ClientOnly>
         </span>
-        <span :class="$style.mood" v-if="journal.mood_score">
+        <span :class="getMoodClass(journal.mood_score)" v-if="journal.mood_score">
           {{ $t('journalCard.mood') }}: {{ journal.mood_score }}
         </span>
       </div>
@@ -146,12 +153,25 @@ const handleDelete = async () => {
   color: #64748b;
 }
 
-.mood {
-  background: #f0f9ff;
-  color: #0369a1;
+.moodBase {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-weight: 600;
+}
+
+.moodGood {
+  background: var(--color-bg-info-light);
+  color: var(--color-mood-good);
+}
+
+.moodNormal {
+  background: var(--color-bg-success-light);
+  color: var(--color-mood-normal);
+}
+
+.moodBad {
+  background: var(--color-bg-warning-light);
+  color: var(--color-mood-bad);
 }
 
 .content {
@@ -167,22 +187,23 @@ const handleDelete = async () => {
 }
 
 .tag {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--color-bg-page);
+  color: var(--color-text-muted);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.8rem;
 }
 
 .distortion {
-  background: #fff1f2;
-  color: #be123c;
-  border: 1px solid #fecdd3;
+  background: var(--color-bg-danger-light);
+  color: var(--color-distortion);
+  border: 1px solid var(--color-distortion);
+  opacity: 0.8;
 }
 
 .advice {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--color-bg-success-light);
+  border: 1px solid var(--color-success);
   border-radius: 8px;
   padding: 1rem;
   display: flex;
@@ -195,7 +216,7 @@ const handleDelete = async () => {
 }
 
 .adviceText {
-  color: #15803d;
+  color: var(--color-success);
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0;
@@ -219,8 +240,8 @@ const handleDelete = async () => {
 }
 
 .actionBtn:hover {
-  background: #e2e8f0;
-  color: #3b82f6;
+  background: var(--color-bg-page);
+  color: var(--color-primary);
 }
 
 .actionIcon {
@@ -231,8 +252,8 @@ const handleDelete = async () => {
 .retryBtn {
   margin-left: auto;
   background: white;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
   padding: 0.25rem 0.75rem;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -244,7 +265,7 @@ const handleDelete = async () => {
 }
 
 .retryBtn:hover:not(:disabled) {
-  background: #dcfce7;
+  background: var(--color-bg-success-light);
 }
 
 .retryIcon {
@@ -272,15 +293,15 @@ const handleDelete = async () => {
 }
 
 .breakdownItem:nth-child(1) {
-  border-left-color: #3b82f6;
+  border-left-color: var(--color-info);
   /* Fact: Blue */
-  background: #eff6ff;
+  background: var(--color-bg-info-light);
 }
 
 .breakdownItem:nth-child(2) {
-  border-left-color: #f97316;
+  border-left-color: var(--color-warning);
   /* Emotion: Orange */
-  background: #fff7ed;
+  background: var(--color-bg-warning-light);
 }
 
 .breakdownLabel {

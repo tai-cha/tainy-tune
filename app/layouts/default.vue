@@ -192,7 +192,7 @@ const deleteThread = async () => {
 .layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--color-bg-page);
   box-sizing: border-box;
 }
 
@@ -205,8 +205,8 @@ const deleteThread = async () => {
 .sidebar {
   display: none;
   width: 240px;
-  background-color: white;
-  border-right: 1px solid #e2e8f0;
+  background-color: var(--color-bg-card);
+  border-right: 1px solid var(--color-border);
   flex-direction: column;
   padding: 1.5rem;
   position: fixed;
@@ -216,7 +216,7 @@ const deleteThread = async () => {
 .logo {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #3b82f6;
+  color: var(--color-primary);
   margin-bottom: 2rem;
   padding-left: 0.75rem;
 }
@@ -245,8 +245,8 @@ const deleteThread = async () => {
 }
 
 .navItem.active {
-  background-color: #eff6ff;
-  color: #3b82f6;
+  background-color: var(--color-bg-primary-light);
+  color: var(--color-primary);
 }
 
 .icon {
@@ -256,7 +256,7 @@ const deleteThread = async () => {
 
 .separator {
   height: 1px;
-  background: #e2e8f0;
+  background: var(--color-border);
   margin: 1rem 0;
 }
 
@@ -307,8 +307,8 @@ const deleteThread = async () => {
 }
 
 .activeThread {
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--color-bg-primary-light);
+  color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -443,7 +443,7 @@ const deleteThread = async () => {
 }
 
 .bottomNavItem.activeBottom {
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 @media (min-width: 768px) {

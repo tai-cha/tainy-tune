@@ -49,7 +49,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-            }}</span></label>
+        }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
@@ -116,7 +116,7 @@ async function submitJournal() {
 
 .slider {
   width: 100%;
-  accent-color: #3b82f6;
+  accent-color: var(--color-primary);
   cursor: pointer;
 }
 
@@ -134,22 +134,22 @@ async function submitJournal() {
 
 
 .error {
-  color: #e53e3e;
+  color: var(--color-danger);
   font-weight: 500;
 }
 
 .moodGood {
-  color: #3b82f6;
+  color: var(--color-mood-good);
   font-weight: 700;
 }
 
 .moodNormal {
-  color: #22c55e;
+  color: var(--color-mood-normal);
   font-weight: 700;
 }
 
 .moodBad {
-  color: #f97316;
+  color: var(--color-mood-bad);
   font-weight: 700;
 }
 
@@ -165,7 +165,7 @@ async function submitJournal() {
   color: #1e293b;
   margin: 0;
   padding-left: 0.5rem;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--color-primary);
   font-weight: 700;
 }
 
@@ -183,6 +183,6 @@ async function submitJournal() {
 
 .homeLink:hover {
   text-decoration: underline;
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 </style>

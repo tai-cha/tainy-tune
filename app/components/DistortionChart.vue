@@ -25,6 +25,14 @@ const props = defineProps<{
 
 const { t, te } = useI18n();
 
+// Helper to get CSS variable
+const getStyle = (name: string) => {
+  if (import.meta.client) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  return '#fb7185'; // Fallback to Soft Rose
+};
+
 const chartData = computed(() => {
   // Sort by count desc
   const sortedEntries = Object.entries(props.counts)
@@ -39,7 +47,7 @@ const chartData = computed(() => {
     datasets: [{
       label: 'Count',
       data: sortedEntries.map(([, count]) => count),
-      backgroundColor: '#f87171',
+      backgroundColor: getStyle('--color-distortion-soft'),
       borderRadius: 4,
     }]
   };
