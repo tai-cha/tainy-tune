@@ -78,7 +78,7 @@ watch(() => props.initialMessages, (newVal) => {
 </script>
 
 <template>
-  <div :class="$style.container">
+  <div :class="[$style.container, 'card']">
     <h2 :class="$style.title">{{ $t('chat.header') }}</h2>
 
     <div :class="$style.chatArea">
@@ -94,9 +94,9 @@ watch(() => props.initialMessages, (newVal) => {
     </div>
 
     <form @submit.prevent="sendMessage" :class="$style.inputArea">
-      <input v-model="input" type="text" :placeholder="$t('chat.placeholder')" :class="$style.input"
+      <input v-model="input" type="text" :placeholder="$t('chat.placeholder')" :class="[$style.input, 'input-field']"
         :disabled="isLoading" />
-      <button type="submit" :class="$style.sendBtn" :disabled="!input.trim() || isLoading">
+      <button type="submit" :class="[$style.sendBtn, 'btn-primary']" :disabled="!input.trim() || isLoading">
         {{ $t('chat.send') }}
       </button>
     </form>
@@ -109,9 +109,6 @@ watch(() => props.initialMessages, (newVal) => {
   flex-direction: column;
   height: 100%;
   /* Fixed height for scroll */
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background-color: #ffffff;
   overflow: hidden;
 }
 
@@ -177,19 +174,7 @@ watch(() => props.initialMessages, (newVal) => {
   gap: 0.5rem;
 }
 
-.input {
-  flex: 1;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 6px;
-  font-size: 1rem;
-}
 
-.input:focus {
-  outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-}
 
 .sendButton {
   padding: 0.5rem 1rem;
@@ -201,12 +186,17 @@ watch(() => props.initialMessages, (newVal) => {
   cursor: pointer;
 }
 
-.sendButton:hover:not(:disabled) {
+.sendBtn {
+  /* Inherits from global btn-primary */
+}
+
+.sendBtn:hover:not(:disabled) {
   background-color: #2f855a;
 }
 
-.sendButton:disabled {
+.sendBtn:disabled {
   background-color: #a0aec0;
   cursor: not-allowed;
 }
 </style>
+```

@@ -29,7 +29,7 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 
     <!-- Quick Actions -->
     <div :class="$style.actions">
-      <NuxtLink to="/journal" :class="$style.actionCard">
+      <NuxtLink to="/journal" :class="[$style.actionCard, 'card', 'card-hover']">
         <div :class="$style.actionIconBg">
           <PencilSquareIcon :class="$style.actionIcon" />
         </div>
@@ -39,7 +39,7 @@ const { data: recentJournals } = await useFetch('/api/journals', {
         </div>
       </NuxtLink>
 
-      <NuxtLink to="/chat" :class="$style.actionCard">
+      <NuxtLink to="/chat" :class="[$style.actionCard, 'card', 'card-hover']">
         <div :class="[$style.actionIconBg, $style.chatBg]">
           <ChatBubbleLeftRightIcon :class="$style.actionIcon" />
         </div>
@@ -100,22 +100,14 @@ const { data: recentJournals } = await useFetch('/api/journals', {
 }
 
 .actionCard {
-  background: white;
   padding: 1.5rem;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
   text-decoration: none;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.actionCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+
 
 .actionIconBg {
   background: #ebf8ff;

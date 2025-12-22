@@ -45,22 +45,22 @@ async function submitJournal() {
 
 <template>
   <div :class="$style.wrapper">
-    <form @submit.prevent="submitJournal" :class="$style.form">
+    <form @submit.prevent="submitJournal" :class="[$style.form, 'card']">
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-        }}</span></label>
+            }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
 
       <div :class="$style.inputGroup">
-        <textarea v-model="content" :placeholder="$t('journal.form.content')" :class="$style.textarea"
+        <textarea v-model="content" :placeholder="$t('journal.form.content')" :class="[$style.textarea, 'input-field']"
           @keydown.ctrl.enter.prevent="submitJournal" @keydown.meta.enter.prevent="submitJournal" required></textarea>
       </div>
 
       <div :class="$style.actions">
-        <button type="submit" :class="$style.submitBtn" :disabled="loading">
+        <button type="submit" :class="[$style.submitBtn, 'btn-primary']" :disabled="loading">
           <span v-if="loading">{{ $t('common.saving') }}</span>
           <span v-else>{{ $t('journal.form.analyze') }}</span>
         </button>
@@ -84,10 +84,7 @@ async function submitJournal() {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  background: white;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 .result {
@@ -125,19 +122,8 @@ async function submitJournal() {
 
 .textarea {
   min-height: 150px;
-  width: 100%;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
   resize: vertical;
   font-family: inherit;
-  transition: border-color 0.2s;
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .actions {
@@ -145,25 +131,7 @@ async function submitJournal() {
   justify-content: flex-end;
 }
 
-.submitBtn {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
 
-.submitBtn:disabled {
-  background-color: #94a3b8;
-  cursor: not-allowed;
-}
-
-.submitBtn:hover:not(:disabled) {
-  background-color: #2563eb;
-}
 
 .error {
   color: #e53e3e;

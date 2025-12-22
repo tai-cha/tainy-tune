@@ -15,6 +15,7 @@ export default defineNuxtConfig({
     port: 3000,
   },
   devtools: { enabled: true },
+  css: ['~/app/assets/css/main.css'],
   modules: ['@nuxt/eslint', '@nuxt/test-utils', '@nuxtjs/i18n'],
   i18n: {
     vueI18n: './i18n.config.ts', // optional, for legacy

@@ -64,7 +64,7 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div :class="$style.card">
+  <div :class="[$style.card, 'card']">
     <div :class="$style.header">
       <div :class="$style.meta">
         <span :class="$style.metaText">
@@ -126,11 +126,7 @@ const handleDelete = async () => {
 
 <style module>
 .card {
-  background: white;
-  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
