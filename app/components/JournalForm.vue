@@ -49,14 +49,14 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-            }}</span></label>
+        }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
 
       <div :class="$style.inputGroup">
         <textarea v-model="content" :placeholder="$t('journal.form.content')" :class="$style.textarea"
-          required></textarea>
+          @keydown.ctrl.enter.prevent="submitJournal" @keydown.meta.enter.prevent="submitJournal" required></textarea>
       </div>
 
       <div :class="$style.actions">
