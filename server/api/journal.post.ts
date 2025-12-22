@@ -1,13 +1,12 @@
 import { journals } from '@server/db/schema';
 import { analyzeJournal } from '@server/utils/ai';
 import { getEmbedding } from '@server/utils/embedding';
+import { searchSimilarJournals } from '@server/utils/retrieval';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { env } from '~/utils/env';
 
 // Initialize Drizzle client
-// Note: In a real production app, you might want to move this to a shared db client file
-// to avoid creating multiple connections.
 const client = postgres(env.DATABASE_URL);
 const db = drizzle(client);
 
@@ -23,16 +22,27 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 1. Process with AI (Parallel: Embedding + CBT Analysis)
-    const [embedding, aiAnalysis] = await Promise.all([
-      getEmbedding(content),
-      analyzeJournal(content),
-    ]);
+    // 1. Generate Embedding first (Sequential execution needed for RAG)
+    const embedding = await getEmbedding(content);
 
-    // 2. Prepare Data (User input overrides AI mood if provided)
+    // 2. Retrieve Context (RAG)
+    // Fetch top 3 similar journals to provide context
+    // No excludeId needed for new entry (DB doesn't have it yet)
+    let contextJournals: any[] = [];
+    try {
+      contextJournals = await searchSimilarJournals(embedding, 3);
+      console.log(`[RAG] Found ${contextJournals.length} similar journals for context.`);
+    } catch (e) {
+      console.warn('[RAG] Retrieval failed, proceeding without context:', e);
+    }
+
+    // 3. Analyze with Context
+    const aiAnalysis = await analyzeJournal(content, contextJournals);
+
+    // 4. Prepare Data (User input overrides AI mood if provided)
     const finalMoodScore = typeof mood === 'number' ? mood : aiAnalysis.mood_score;
 
-    // 3. Save to DB
+    // 5. Save to DB
     const [inserted] = await db
       .insert(journals)
       .values({
@@ -42,6 +52,8 @@ export default defineEventHandler(async (event) => {
         tags: aiAnalysis.tags,
         distortion_tags: aiAnalysis.distortion_tags,
         advice: aiAnalysis.advice,
+        fact: aiAnalysis.fact,
+        emotion: aiAnalysis.emotion,
         is_analysis_failed: aiAnalysis.is_analysis_failed,
       })
       .returning();

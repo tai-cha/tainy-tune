@@ -1,5 +1,7 @@
 import { journals } from '@server/db/schema';
 import { analyzeJournal } from '@server/utils/ai';
+import { getEmbedding } from '@server/utils/embedding';
+import { searchSimilarJournals } from '@server/utils/retrieval';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { env } from '~/utils/env';
@@ -26,11 +28,29 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'Journal not found' });
     }
 
-    // 2. Re-analyze
-    const aiAnalysis = await analyzeJournal(journal.content);
+    // 2. Ensure Embedding exists (for RAG)
+    let embedding = journal.embedding;
+    let needUpdateEmbedding = false;
 
-    // If analysis failed again (fallback returned), throw 429 or similar?
-    // analyzeJournal returns fallback on error.
+    if (!embedding) {
+      console.log(`[RAG] Embedding missing for journal ${id}, generating...`);
+      embedding = await getEmbedding(journal.content);
+      needUpdateEmbedding = true;
+    }
+
+    // 3. Retrieve Context (RAG)
+    // Exclude current ID to avoid self-reference
+    let contextJournals: any[] = [];
+    try {
+      contextJournals = await searchSimilarJournals(embedding, 3, id);
+      console.log(`[RAG] Found ${contextJournals.length} similar journals for context (Re-analysis).`);
+    } catch (e) {
+      console.warn('[RAG] Retrieval failed, proceeding without context:', e);
+    }
+
+    // 4. Re-analyze with Context
+    const aiAnalysis = await analyzeJournal(journal.content, contextJournals);
+
     if (aiAnalysis.is_analysis_failed) {
       throw createError({
         statusCode: 429,
@@ -38,20 +58,25 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // 3. Update DB
-    // Only update AI fields. Preserve user content/embedding unless needed.
-    // Ideally user might have edited mood score manually?
-    // User said "Only those failed analysis".
-    // So we overwite mood_score, tags, advice.
+    // 5. Update DB
+    const updateData: any = {
+      mood_score: aiAnalysis.mood_score,
+      tags: aiAnalysis.tags,
+      distortion_tags: aiAnalysis.distortion_tags,
+      advice: aiAnalysis.advice,
+      fact: aiAnalysis.fact,
+      emotion: aiAnalysis.emotion,
+      is_analysis_failed: aiAnalysis.is_analysis_failed,
+    };
+
+    // If we generated embedding on the fly, save it too
+    if (needUpdateEmbedding) {
+      updateData.embedding = embedding;
+    }
+
     const [updated] = await db
       .update(journals)
-      .set({
-        mood_score: aiAnalysis.mood_score,
-        tags: aiAnalysis.tags,
-        distortion_tags: aiAnalysis.distortion_tags,
-        advice: aiAnalysis.advice,
-        is_analysis_failed: aiAnalysis.is_analysis_failed,
-      })
+      .set(updateData)
       .where(eq(journals.id, id))
       .returning();
 

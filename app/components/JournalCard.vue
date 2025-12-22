@@ -11,6 +11,8 @@ const props = defineProps<{
     tags: string[] | null;
     distortion_tags: string[] | null;
     advice: string | null;
+    fact: string | null;
+    emotion: string | null;
     is_analysis_failed: boolean | null;
     created_at: string | Date | null;
   };
@@ -97,9 +99,22 @@ const handleDelete = async () => {
       </span>
     </div>
 
+    <div v-if="journal.fact || journal.emotion" :class="$style.breakdown">
+      <div :class="$style.breakdownItem">
+        <span :class="$style.breakdownLabel">事実</span>
+        <p :class="$style.breakdownText">{{ journal.fact || 'なし' }}</p>
+      </div>
+      <div :class="$style.breakdownItem">
+        <span :class="$style.breakdownLabel">思考・感情</span>
+        <p :class="$style.breakdownText">{{ journal.emotion || 'なし' }}</p>
+      </div>
+    </div>
+
     <div :class="$style.advice" v-if="journal.advice">
       <div :class="$style.adviceIcon">💡</div>
-      <p :class="$style.adviceText">{{ journal.advice }}</p>
+      <div :class="$style.adviceContent">
+        <p :class="$style.adviceText">{{ journal.advice }}</p>
+      </div>
 
       <button v-if="journal.is_analysis_failed" @click="handleRetry" :class="$style.retryBtn" :disabled="isRetrying">
         <ArrowPathIcon :class="[$style.retryIcon, isRetrying && $style.spin]" />
@@ -243,6 +258,52 @@ const handleDelete = async () => {
 
 .spin {
   animation: spin 1s linear infinite;
+}
+
+
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.breakdownItem {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.75rem;
+  border-left: 3px solid #cbd5e0;
+}
+
+.breakdownItem:nth-child(1) {
+  border-left-color: #3b82f6;
+  /* Fact: Blue */
+  background: #eff6ff;
+}
+
+.breakdownItem:nth-child(2) {
+  border-left-color: #f97316;
+  /* Emotion: Orange */
+  background: #fff7ed;
+}
+
+.breakdownLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.breakdownText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.adviceContent {
+  flex: 1;
 }
 
 @keyframes spin {

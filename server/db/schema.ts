@@ -8,6 +8,8 @@ export const journals = pgTable('journals', {
   tags: text('tags').array(),
   distortion_tags: text('distortion_tags').array(),
   advice: text('advice'),
+  fact: text('fact'),
+  emotion: text('emotion'),
   is_analysis_failed: boolean('is_analysis_failed').default(false),
   created_at: timestamp('created_at').defaultNow(),
   embedding: vector('embedding', { dimensions: 384 }),

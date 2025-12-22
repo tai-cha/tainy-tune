@@ -14,35 +14,50 @@ const model = genAI.getGenerativeModel({
         tags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         distortion_tags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         advice: { type: SchemaType.STRING },
+        fact: { type: SchemaType.STRING },
+        emotion: { type: SchemaType.STRING },
       },
-      required: ['mood_score', 'tags', 'distortion_tags', 'advice'],
+      required: ['mood_score', 'tags', 'distortion_tags', 'advice', 'fact', 'emotion'],
     },
   },
 });
 
 export type AnalysisResult = z.infer<typeof AnalysisSchema>;
 
-export async function analyzeJournal(content: string): Promise<AnalysisResult & { is_analysis_failed: boolean }> {
-  // ... (prompt code is omitted, keep it same)
-  const prompt = `
-    Analyze the following journal entry written by a user with ADHD traits.
+export async function analyzeJournal(content: string, contextJournals: any[] = []): Promise<AnalysisResult & { is_analysis_failed: boolean }> {
+  // Format context for prompt
+  const contextString = contextJournals.length > 0
+    ? `
+    ### Relevant Past Journals (Context):
+    ${contextJournals.map((j, i) => `
+    [${i + 1}] Date: ${j.created_at}
+    Content: ${j.content}
+    Advice Given: ${j.advice}
+    `).join('\n')}
     
+    Instruction: Consider these past entries. If the user is repeating a pattern or has made progress, mention it in the advice.
+    `
+    : '';
+
+  const prompt = `
+    # Role
+    You are a professional CBT (Cognitive Behavioral Therapy) partner. Your objective is not to correct "errors," but to provide a metacognitive mirror. Assume the user's thoughts are rational attempts to process their reality and past experiences.
+
+    Analyze the following journal entry.
+
+    ${contextString}
+
     1. **Mood Score**: Estimate the user's mood on a scale of 1 (Worst) to 10 (Best).
     2. **Tags**: Generate 3-5 keywords summarizing the topic.
-    3. **Cognitive Distortions**: Identify ALL applicable cognitive distortions from the following list. It is common to have multiple distortions in a single entry; list all that apply. If none, return an empty list. **Important: Return the corresponding KEY strings.**
-       - all_or_nothing (All-or-nothing thinking / 白黒思考)
-       - overgeneralization (Overgeneralization / 過度の一般化)
-       - mental_filter (Mental filter / 心のフィルター)
-       - disqualifying_positive (Disqualifying the positive / マイナス化思考)
-       - jumping_conclusions (Jumping to conclusions / 結論の飛躍 - general)
-       - mind_reading (Mind reading / 心の読みすぎ)
-       - fortune_telling (Fortune telling / 先読みの誤り)
-       - magnification_minimization (Magnification/Minimization / 拡大解釈・過小評価)
-       - emotional_reasoning (Emotional reasoning / 感情的決めつけ)
-       - should_statements (Should statements / すべき思考)
-       - labeling (Labeling / レッテル貼り)
-       - personalization (Personalization / 自己関連付け)
-    4. **Advice**: Provide a short, empathetic, and actionable CBT-based advice or comment (1-2 sentences) in Japanese. Focus on validating the user's feelings and offering a different perspective if there are distortions.
+    3. **Cognitive Distortions**: Identify ALL applicable cognitive distortions from the specific list below.
+       - *Perspective*: View these not just as "distortions" but as "specific cognitive lenses" the user is currently using.
+       - List: all_or_nothing, overgeneralization, mental_filter, disqualifying_positive, jumping_conclusions, mind_reading, fortune_telling, magnification_minimization, emotional_reasoning, should_statements, labeling, personalization.
+    4. **Fact Decomposition**: Extract ONLY the objective facts (events, actions, situations) from the content. Remove any subjective interpretation or emotions.
+    5. **Emotion/Thought Decomposition**: Extract the user's thoughts, interpretations, and feelings about the facts.
+    6. **Advice**: Provide a short, empathetic, and actionable CBT-based advice (1-2 sentences) in Japanese.
+       - *Validation*: Always validate the internal logic of the user's thoughts first.
+       - *Inquiry*: Instead of refuting, offer a gentle inquiry that expands the user's perspective beyond their current single focus.
+       - If similar past patterns are found in the provided Context, refer to them gently to encourage insight.
     
     Journal Content:
     "${content}"
@@ -62,6 +77,8 @@ export async function analyzeJournal(content: string): Promise<AnalysisResult & 
       tags: [],
       distortion_tags: [],
       advice: '分析に失敗しました。',
+      fact: '',
+      emotion: '',
       is_analysis_failed: true,
     };
   }
@@ -85,4 +102,6 @@ export const AnalysisSchema = z.object({
     'personalization',
   ])),
   advice: z.string(),
+  fact: z.string(),
+  emotion: z.string(),
 });

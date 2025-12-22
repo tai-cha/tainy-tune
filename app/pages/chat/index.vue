@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChatBubbleLeftRightIcon, TrashIcon, BaseIcon } from '@heroicons/vue/24/outline'; // Check icons
+import { ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/vue/24/outline'; // Check icons
 
 const { t } = useI18n();
 const { data: threads, refresh } = await useFetch('/api/chat/threads', { key: 'threads' });
