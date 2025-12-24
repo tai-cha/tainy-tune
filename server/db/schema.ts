@@ -1,5 +1,7 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, serial, text, vector, integer, timestamp, boolean, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, vector, integer, timestamp, boolean, index, pgEnum } from 'drizzle-orm/pg-core';
+
+export const roleEnum = pgEnum('role', ['user', 'admin']);
 
 export const users = pgTable('user', {
   id: text('id').primaryKey(),
@@ -9,7 +11,7 @@ export const users = pgTable('user', {
   image: text('image'),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
-  role: text('role'),
+  role: roleEnum('role').default('user'),
   settings: text('settings'), // Stored as JSON string or use jsonb if preferred
 });
 

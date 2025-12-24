@@ -13,8 +13,12 @@
 
       <div :class="$style.cta">
         <NuxtLink to="/login" :class="['btn', 'btn-primary', $style.loginBtn]">
-          ログインして始める
+          ログインする
         </NuxtLink>
+
+        <div :class="$style.subLinks">
+          <NuxtLink to="/signup" :class="$style.link">アカウント作成</NuxtLink>
+        </div>
       </div>
     </header>
 
@@ -77,6 +81,31 @@
   font-size: 1.1rem;
   padding: 0.75rem 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.subLinks {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.divider {
+  opacity: 0.5;
 }
 
 .features {

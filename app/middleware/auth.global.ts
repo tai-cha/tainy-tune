@@ -2,7 +2,7 @@ import { defineNuxtRouteMiddleware, navigateTo, useRequestHeaders } from '#app';
 import { authClient } from '~/app/utils/auth-client';
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  if (to.path === '/login' || to.path === '/') {
+  if (to.path === '/login' || to.path === '/' || to.path === '/admin/setup' || to.path === '/signup') {
     return;
   }
 

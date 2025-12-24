@@ -65,8 +65,17 @@
 - [x] **User Authentication**: 認証機能（Better Auth）の導入。
 - [x] **Multi-tenancy**: ユーザー概念の追加（`user_id` 連携）により、プロファイル切り替えや公開サーバーでのセキュアな個人利用を可能にする。（※不特定多数への公開ではなく、あくまでセキュアな自己利用・家族利用を想定）
 - [x] **Admin Initialization**: 環境変数 (`INIT_ADMIN_PASSWORD`) による初期管理者アカウント作成機能。
-- **Registration Control**: 管理者による新規ユーザー登録の許可/停止設定（基本は招待制・閉鎖運用）。
-- **Feature Toggles**: 機能ごとの有効/無効設定。全体設定（Global Default）とユーザー個別上書き（User Override: Default/On/Off）の2段階構成にし、「特定の家族にはチャットも許可する」といった柔軟な運用を可能にする。
+- [ ] **Admin Dashboard** (Management UI):
+    - [ ] **User List**: 登録ユーザー一覧の表示。
+    - [ ] **Registration Control**: 新規ユーザー登録の有効化・無効化（招待制運用のため）。
+    - [ ] **User Management**:
+        - 任意のユーザーのパスワード再発行（Reset Password）。
+        - ユーザーのRole変更（User <-> Admin）。
+- [ ] **User Profile**:
+    - [ ] **Profile Settings**: 表示名、メールアドレス、パスワードの変更フォーム。
+    - [ ] **UI Polish**:
+        - `/signup` や `/admin/setup` への `password_confirmation` (確認用パスワード入力) の追加。
+        - Dashboardへのユーザー名表示。
 
 ## Phase 9: True Offline Capability
 **Goal**: 電波の届かない場所でも、心のケアを継続できるようにする。

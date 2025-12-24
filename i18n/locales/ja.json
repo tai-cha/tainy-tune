@@ -152,5 +152,37 @@
     "moodChart": "気分の推移 (過去30日)",
     "distortionChart": "認知の歪み傾向",
     "noData": "データがありません。日記を書くとここに分析結果が表示されます。"
+  },
+  "setup": {
+    "title": "システム初期化",
+    "subtitle": "管理者アカウントを安全に設定してください。",
+    "form": {
+      "initToken": {
+        "label": "初期化トークン",
+        "placeholder": "INIT_ADMIN_PASSWORD の値"
+      },
+      "adminProfile": "管理者アカウント",
+      "displayName": "表示名",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "submit": "セットアップを完了",
+      "submitting": "初期化中..."
+    },
+    "footer": "Tainy Tune • Private AI Life Log"
+  },
+  "signup": {
+    "title": "アカウント作成",
+    "subtitle": "Tainy Tune で新しい旅を始めましょう。",
+    "form": {
+      "name": "名前",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "submit": "登録する",
+      "submitting": "アカウント作成中..."
+    },
+    "loginLink": {
+      "text": "すでにアカウントをお持ちですか？",
+      "link": "ログイン"
+    }
   }
 }

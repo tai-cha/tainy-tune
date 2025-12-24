@@ -57,6 +57,13 @@
       "when": 1766547750312,
       "tag": "0007_tough_ulik",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1766566061262,
+      "tag": "0008_lying_maelstrom",
+      "breakpoints": true
     }
   ]
 }
