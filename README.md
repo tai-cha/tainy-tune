@@ -3,22 +3,21 @@
 ユーザーに寄り添う、CBT（認知行動療法）ベースのメンタルケア兼ライフログアプリ。
 セルフホスト可能なWebアプリケーションです。
 
-> [!CAUTION]
-> **No Authentication / Security Warning**
-> 本アプリケーションには現在、**ユーザー認証機能（ログイン機構）が実装されていません**。
-> 公開サーバーにデプロイすると、誰でもデータにアクセス・操作できてしまいます。
->
-> Cloudflare Tunnel などのアクセスコントロール外での**インターネット公開は絶対にしないでください**。
-> 基本的には**開発用・テスト用**、またはセキュアな閉域網内での個人利用に限定してください。
+> [!NOTE]
+> **Authentication Features Added**
+> ユーザー認証機能（Better Auth）が実装されました。初期管理者のセットアップと個別のユーザー登録が可能です。
+> ただし、インターネット公開時は Cloudflare Tunnel 等で適切なセキュリティ対策を行うことを引き続き推奨します。
 
 ## Features
 *   **Life Log & Journaling**: 思考の整理、ポジティブ/ネガティブな感情の記録。
 *   **AI Support**: Google Gemini 2.5 Flash を活用したCBTベースの対話とフィードバック。
+*   **Secure Auth**: 管理者セットアップとユーザー認証によるデータ保護。
 *   **Privacy First**: ベクトル埋め込み（Embedding）をローカル（Transformers.js）で完結。データは全て自分のサーバー（PostgreSQL）に保存されます。
-*   **RAG (Retrieval-Augmented Generation)**: 過去のログを文脈としてAIが参照し、長期的なケアを実現。
+*   **RAG**: 過去のログを文脈としてAIが参照し、長期的なケアを実現。
 
 ## Tech Stack
 *   **Framework**: Nuxt 3 (Universal Rendering)
+*   **Auth**: Better Auth
 *   **Language**: TypeScript
 *   **Database**: PostgreSQL 16+ (with `pgvector`)
 *   **ORM**: Drizzle ORM
@@ -35,8 +34,12 @@
     `.env.example` をコピーして `.env` を作成します。
     ```bash
     cp .env.example .env
-    # .env を編集（GEMINI_API_KEYは必須、DATABASE_URLはローカルならそのままでOK）
     ```
+    `.env` 内の変数を設定してください:
+    - `GEMINI_API_KEY`: Google AI Studioで取得したAPIキー（必須）。
+    - `INIT_ADMIN_PASSWORD`: 初回起動時の管理者セットアップ用トークン。
+    - `BETTER_AUTH_SECRET`: セッション暗号化用シークレット（推測困難な文字列を指定）。
+    - `BETTER_AUTH_URL`: 公開URL（ローカルなら `http://localhost:3000`）。
 
 2.  **Start Services**:
     ```bash
@@ -49,7 +52,11 @@
     # コンテナ内のツールを使ってDB初期化
     docker compose exec app pnpm drizzle:push
     ```
-    これで `http://localhost:3000` にアクセスできます。
+
+4.  **Initial Admin Setup**:
+    - ブラウザでアプリケーションのURL（`http://localhost:3000` や `.env` で設定した `BETTER_AUTH_URL`）にアクセスします。
+    - システム初期化画面（System Initialization）が表示されます。
+    - `.env` で設定した `INIT_ADMIN_PASSWORD` を入力し、管理者アカウントを作成してください。
 
 ### Option 2: Manual Setup
 自分の環境（Node.js + PostgreSQL）で動かす場合。
@@ -57,7 +64,7 @@
 
 1.  **Setup**:
     ```bash
-    cp .env.example .env # DATABASE_URLを自分のPostgresに向ける
+    cp .env.example .env # 必要な変数を全て設定
     pnpm install
     pnpm drizzle:push    # スキーマ反映
     pnpm build
