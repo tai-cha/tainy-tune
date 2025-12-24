@@ -4,8 +4,9 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgres://postgres:password@db:5432/tainy_tune
       NUXT_HOST: 0.0.0.0
       NUXT_PORT: 3000
     depends_on:
