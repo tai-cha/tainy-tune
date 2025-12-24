@@ -25,9 +25,16 @@ Interactive deep-dive into the user's logs.
 - **Context Awareness**: The AI has access to the user's journal entries (via Vector Search) to answer questions like "How was my sleep last month?".
 - **Journal Integration**: "Discuss" button on any journal card opens a chat context specific to that entry.
 
-## 4. Technical Architecture
+## 4. Self-Care & Mindfulness (Phase 6)
+"Low Friction" tools for immediate mental regulation.
+- **One-Tap Check-in**: 5-scale mood selector for instant logging. Updates existing log if within 1 hour.
+- **Mindfulness Timer**: Simple 1/3/5 min timer. Records "duration" as a separate success metric.
+- **Unified Stats**: Mood Chart integrates both "Journal Entires" and "Check-ins" for a complete view of the user's state.
+
+## 5. Technical Architecture
 - **Framework**: Nuxt 3 (Universal Rendering).
 - **Database**: PostgreSQL + `pgvector` (Drizzle ORM).
 - **AI**: Gemini 2.5 Flash (via Google AI Studio).
 - **Embeddings**: Local extraction via Transformers.js (Xenova/multilingual-e5-small) running on CPU.
 - **i18n**: Fully localized (Japanese/English) via `@nuxtjs/i18n`.
+- **PWA**: Fully offline-capable via `@vite-pwa/nuxt`. Installed as "Tainy Tune".

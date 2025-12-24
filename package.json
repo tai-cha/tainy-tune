@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@vite-pwa/nuxt": "^1.1.0",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.7"
   },

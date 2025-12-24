@@ -15,8 +15,23 @@ export default defineNuxtConfig({
     port: 3000,
   },
   devtools: { enabled: true },
+  app: {
+    head: {
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover' },
+        { name: 'theme-color', content: '#ffffff' },
+        { name: 'apple-mobile-web-app-title', content: 'Tainy Tune' },
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/pwa-192x192.png' },
+      ],
+      title: 'Tainy Tune', // Browser Tab Title
+    },
+  },
+
   css: ['~/app/assets/css/main.css'],
-  modules: ['@nuxt/eslint', '@nuxt/test-utils', '@nuxtjs/i18n'],
+  modules: ['@nuxt/eslint', '@nuxt/test-utils', '@nuxtjs/i18n', '@vite-pwa/nuxt'],
   i18n: {
     vueI18n: './i18n.config.ts', // optional, for legacy
     locales: [
@@ -26,6 +41,38 @@ export default defineNuxtConfig({
     defaultLocale: 'ja',
     strategy: 'no_prefix', // Keep URLs simple for now
   },
+  pwa: {
+    manifest: {
+      name: 'Tainy Tune',
+      short_name: 'TainyTune',
+      description: 'Your AI Mental Care Partner',
+      theme_color: '#ffffff',
+      display: 'standalone',
+      background_color: '#ffffff',
+      orientation: 'portrait',
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+      ],
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module',
+    },
+  },
+
   typescript: {
     tsConfig: {
       compilerOptions: {

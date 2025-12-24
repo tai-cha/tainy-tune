@@ -50,7 +50,16 @@
     - 「朝の調子はどう？」など、気が向いた時にワンタップで今の状態を記録。
     - 定型文入力すら面倒な時、AIアドバイスなしで純粋に記録のみを行う。
 
-## Phase 7: Innovation & Renovation
+## Phase 7: Mobile Experience (PWA)
+**Goal**: スマホでの利用体験を最適化し、セルフケア機能の価値を最大化する。
+
+- **PWA Support**: `@vite-pwa/nuxt` の導入。
+    - Manifest設定（ホーム画面追加時のアイコン・名称）。
+    - Service Workerによるキャッシュ戦略（オフライン起動の高速化）。
+- **Mobile UI Polish**:
+    - タッチ操作に最適化されたUI調整（ボタンサイズ、セーフエリア対応）。
+
+## Phase 8: Innovation & Renovation
 **Goal**: アーキテクチャの刷新とマルチユーザー対応。
 
 - **User Authentication**: 認証機能（Auth.js等）の導入。
