@@ -67,3 +67,13 @@
 - **Admin Initialization**: 環境変数 (`INIT_ADMIN_PASSWORD`) による初期管理者アカウント作成機能。
 - **Registration Control**: 管理者による新規ユーザー登録の許可/停止設定（基本は招待制・閉鎖運用）。
 - **Feature Toggles**: 機能ごとの有効/無効設定。全体設定（Global Default）とユーザー個別上書き（User Override: Default/On/Off）の2段階構成にし、「特定の家族にはチャットも許可する」といった柔軟な運用を可能にする。
+
+## Phase 9: True Offline Capability
+**Goal**: 電波の届かない場所でも、心のケアを継続できるようにする。
+- **Offline Data Sync**: IndexedDB を活用し、オフラインで書いた日記やチェックインを一時保存。オンライン復帰時にサーバーへ同期（Background Sync）。
+- **Offline Meditation**: 瞑想ガイドやタイマー音声をキャッシュし、完全オフラインでの再生をサポート。
+- **Reliability**: ネットワーク不安定時の再試行ロジックの強化。
+
+## Phase 10: Medication Management
+**Goal**: 服薬習慣の定着を支援し、ダイアリー（気分）との相関を可視化する。
+- **Medication Alarm**: 服薬リマインダー機能。飲み忘れ防止のアラーム通知と、ダイアリーと連携した服用記録のログ化。
