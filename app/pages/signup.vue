@@ -80,7 +80,7 @@ async function handleSignup() {
 
       <div :class="$style.footer">
         {{ $t('signup.loginLink.text') }}
-        <NuxtLink to="/" :class="$style.link">{{ $t('signup.loginLink.link') }}</NuxtLink>
+        <NuxtLink to="/login" :class="$style.link">{{ $t('signup.loginLink.link') }}</NuxtLink>
       </div>
     </div>
   </div>

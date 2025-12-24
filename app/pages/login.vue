@@ -1,44 +1,37 @@
 <script setup lang="ts">
-import { signIn } from '~/app/utils/auth-client';
+import { authClient } from '@app/utils/auth-client';
 
 definePageMeta({
   layout: false // Custom simple layout for login
 });
 
-const form = ref({
+const form = reactive({
   email: '',
   password: '',
 });
 
-const error = ref('');
+const errorMsg = ref('');
 const loading = ref(false);
 
 const handleLogin = async () => {
   loading.value = true;
-  error.value = '';
+  errorMsg.value = '';
 
   try {
-    console.log('Attempting login with:', form.value.email);
-    const { data, error: err } = await signIn.email({
-      email: form.value.email,
-      password: form.value.password,
+    const { data, error } = await authClient.signIn.email({
+      email: form.email,
+      password: form.password,
     });
 
-    console.log('Login response:', { data, err });
-
-    if (err) {
-      console.error('Login error:', err);
-      error.value = 'ログインに失敗しました。メールアドレスかパスワードを確認してください。';
-      loading.value = false;
+    if (error) {
+      errorMsg.value = 'ログインに失敗しました。メールアドレスかパスワードを確認してください。'; // Fallback
       return;
     }
 
-    console.log('Login success, navigating to /');
-    // Redirect handled by client or middleware, but explicit is safe
     await navigateTo('/');
   } catch (e) {
     console.error('Unexpected login error:', e);
-    error.value = '予期せぬエラーが発生しました。';
+    errorMsg.value = '予期せぬエラーが発生しました。';
   } finally {
     loading.value = false;
   }
@@ -46,37 +39,46 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="login-container">
-    <div class="card login-card">
-      <h1 class="title">Tainy Tune</h1>
-      <p class="subtitle">おかえりなさい</p>
+  <div :class="$style.container">
+    <div :class="['card', $style.authCard]">
+      <div :class="$style.header">
+        <h1 :class="$style.title">{{ $t('login.title') }}</h1>
+        <p :class="$style.subtitle">{{ $t('login.subtitle') }}</p>
+      </div>
 
-      <form @submit.prevent="handleLogin" class="login-form">
-        <div class="form-group">
-          <label for="email">メールアドレス</label>
-          <input id="email" v-model="form.email" type="email" required class="input-field"
-            placeholder="example@local.host" />
+      <form @submit.prevent="handleLogin" :class="$style.form">
+        <div :class="$style.field">
+          <label :class="$style.label">{{ $t('login.form.email') }}</label>
+          <input v-model="form.email" type="email" required :class="$style.input" placeholder="example@local.host" />
         </div>
 
-        <div class="form-group">
-          <label for="password">パスワード</label>
-          <input id="password" v-model="form.password" type="password" required class="input-field" />
+        <div :class="$style.field">
+          <label :class="$style.label">{{ $t('login.form.password') }}</label>
+          <input v-model="form.password" type="password" required :class="$style.input" placeholder="••••••••" />
         </div>
 
-        <div v-if="error" class="error-msg">
-          {{ error }}
-        </div>
+        <Transition name="fade">
+          <div v-if="errorMsg" :class="$style.error">
+            {{ errorMsg }}
+          </div>
+        </Transition>
 
-        <button type="submit" class="btn-primary full-width" :disabled="loading">
-          {{ loading ? 'ログイン中...' : 'ログイン' }}
+        <button type="submit" :class="['btn-primary', $style.submitBtn]" :disabled="loading">
+          <span v-if="loading">{{ $t('login.form.submitting') }}</span>
+          <span v-else>{{ $t('login.form.submit') }}</span>
         </button>
       </form>
+
+      <div :class="$style.footer">
+        {{ $t('login.signupLink.text') }}
+        <NuxtLink to="/signup" :class="$style.link">{{ $t('login.signupLink.link') }}</NuxtLink>
+      </div>
     </div>
   </div>
 </template>
 
-<style scoped>
-.login-container {
+<style module>
+.container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -85,46 +87,96 @@ const handleLogin = async () => {
   padding: 1rem;
 }
 
-.login-card {
+.authCard {
   width: 100%;
   max-width: 400px;
-  padding: 2rem;
-  background: white;
+  padding: 2.5rem;
 }
 
-.title {
+.header {
   text-align: center;
-  margin-bottom: 0.5rem;
-  font-size: 1.5rem;
-  color: var(--color-primary);
-}
-
-.subtitle {
-  text-align: center;
-  color: var(--color-text-muted);
   margin-bottom: 2rem;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.025em;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--color-text-main);
 }
 
-.full-width {
+.input {
   width: 100%;
-  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-main);
+  font-size: 1rem;
+  transition: border-color 0.2s;
 }
 
-.error-msg {
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-card);
+}
+
+.error {
+  background-color: var(--color-bg-danger-light);
   color: var(--color-danger);
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
-  margin-bottom: 1rem;
   text-align: center;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  justify-content: center;
+}
+
+.footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
 }
 </style>
