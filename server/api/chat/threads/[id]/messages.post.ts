@@ -1,12 +1,11 @@
 import { threads, messages, journals } from '@server/db/schema';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { env } from '~/utils/env';
+
 import { eq, inArray, asc } from 'drizzle-orm';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { env } from '~/utils/env';
 
-const client = postgres(env.DATABASE_URL);
-const db = drizzle(client);
+import { db } from '@server/db';
+
 
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });

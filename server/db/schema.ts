@@ -34,3 +34,15 @@ export const messages = pgTable('messages', {
   content: text('content').notNull(),
   created_at: timestamp('created_at').defaultNow(),
 });
+
+export const checkins = pgTable('checkins', {
+  id: serial('id').primaryKey(),
+  mood_score: integer('mood_score').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+export const meditations = pgTable('meditations', {
+  id: serial('id').primaryKey(),
+  duration_seconds: integer('duration_seconds').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+});

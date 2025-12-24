@@ -1,11 +1,9 @@
 import { journals } from '@server/db/schema';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { env } from '~/utils/env';
+
 import { eq } from 'drizzle-orm';
 
-const client = postgres(env.DATABASE_URL);
-const db = drizzle(client);
+import { db } from '@server/db';
+
 
 export default defineEventHandler(async (event) => {
   const idStr = getRouterParam(event, 'id');

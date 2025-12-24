@@ -1,12 +1,7 @@
-import { journals } from '@server/db/schema';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { env } from '~/utils/env';
+import { journals, checkins } from '@server/db/schema';
+import { db } from '@server/db';
 import { desc, and, gte, lte, sql } from 'drizzle-orm';
 import { getValidDistortionKeys } from '@server/utils/locale';
-
-const client = postgres(env.DATABASE_URL);
-const db = drizzle(client);
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -32,10 +27,35 @@ export default defineEventHandler(async (event) => {
       )
       .orderBy(desc(journals.created_at));
 
+    const checkinRecords = await db
+      .select({
+        created_at: checkins.created_at,
+        mood_score: checkins.mood_score,
+      })
+      .from(checkins)
+      .where(
+        and(
+          gte(checkins.created_at, startDate),
+          lte(checkins.created_at, endDate)
+        )
+      )
+      .orderBy(desc(checkins.created_at));
+
     // Aggregate mood scores by date (average if multiple per day)
     const moodMap: Record<string, { sum: number; count: number }> = {};
 
     records.forEach(r => {
+      if (r.mood_score && r.created_at) {
+        const date = r.created_at.toISOString().split('T')[0];
+        if (!moodMap[date]) {
+          moodMap[date] = { sum: 0, count: 0 };
+        }
+        moodMap[date].sum += r.mood_score;
+        moodMap[date].count += 1;
+      }
+    });
+
+    checkinRecords.forEach(r => {
       if (r.mood_score && r.created_at) {
         const date = r.created_at.toISOString().split('T')[0];
         if (!moodMap[date]) {

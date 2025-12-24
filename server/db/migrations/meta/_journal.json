@@ -43,6 +43,13 @@
       "when": 1766122891863,
       "tag": "0005_sloppy_captain_britain",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766540094049,
+      "tag": "0006_overconfident_master_chief",
+      "breakpoints": true
     }
   ]
 }

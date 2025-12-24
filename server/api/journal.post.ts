@@ -2,13 +2,11 @@ import { journals } from '@server/db/schema';
 import { analyzeJournal } from '@server/utils/ai';
 import { getEmbedding } from '@server/utils/embedding';
 import { searchSimilarJournals } from '@server/utils/retrieval';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { env } from '~/utils/env';
+
 
 // Initialize Drizzle client
-const client = postgres(env.DATABASE_URL);
-const db = drizzle(client);
+import { db } from '@server/db';
+
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

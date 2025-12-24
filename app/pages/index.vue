@@ -50,6 +50,17 @@ const { data: recentJournals } = await useFetch('/api/journals', {
       </NuxtLink>
     </div>
 
+    <!-- Self Care Tools -->
+    <div :class="$style.section">
+      <div :class="$style.sectionHeader">
+        <h2>{{ $t('dashboard.selfCare.title') }}</h2>
+      </div>
+      <div :class="$style.toolsGrid">
+        <MoodCheckin />
+        <MindfulnessTimer />
+      </div>
+    </div>
+
     <!-- Recent Activity -->
     <div :class="$style.section">
       <div :class="$style.sectionHeader">
@@ -141,6 +152,17 @@ const { data: recentJournals } = await useFetch('/api/journals', {
   margin: 0;
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+.toolsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .toolsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* Recent Activity */

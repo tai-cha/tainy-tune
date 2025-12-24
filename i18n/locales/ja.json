@@ -11,7 +11,10 @@
     "saving": "保存中...",
     "cancel": "キャンセル",
     "back": "戻る",
-    "required": "必須"
+    "required": "必須",
+    "unit": {
+      "minute": "分"
+    }
   },
   "nav": {
     "dashboard": "ホーム",
@@ -36,6 +39,28 @@
       "title": "最近の活動",
       "viewAll": "すべて見る",
       "empty": "まだ履歴がありません。最初の日記を書いてみましょう！"
+    },
+    "selfCare": {
+      "title": "セルフケア",
+      "checkin": {
+        "title": "ワンタップ・チェックイン",
+        "labels": {
+          "veryBad": "最悪",
+          "bad": "悪い",
+          "neutral": "普通",
+          "good": "良い",
+          "excellent": "最高"
+        },
+        "recorded": "記録しました！",
+        "updated": "更新しました！",
+        "error": "保存エラー"
+      },
+      "timer": {
+        "title": "マインドフルネス・タイマー",
+        "start": "スタート",
+        "stop": "ストップ",
+        "finished": "終了しました！記録を保存しました。"
+      }
     }
   },
   "journal": {

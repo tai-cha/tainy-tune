@@ -1,11 +1,9 @@
 import { journals } from '@server/db/schema';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { env } from '~/utils/env';
+
 import { desc, and, gte, lte, ilike, or, eq, sql } from 'drizzle-orm';
 
-const client = postgres(env.DATABASE_URL);
-const db = drizzle(client);
+import { db } from '@server/db';
+
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
