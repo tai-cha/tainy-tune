@@ -8,7 +8,15 @@ import { searchSimilarJournals } from '@server/utils/retrieval';
 import { db } from '@server/db';
 
 
+import { auth } from '~/server/utils/auth';
+
 export default defineEventHandler(async (event) => {
+  const session = await auth.api.getSession({ headers: event.headers });
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+  const userId = session.user.id;
+
   const body = await readBody(event);
   const { content, mood } = body;
 
@@ -28,7 +36,7 @@ export default defineEventHandler(async (event) => {
     // No excludeId needed for new entry (DB doesn't have it yet)
     let contextJournals: any[] = [];
     try {
-      contextJournals = await searchSimilarJournals(embedding, 3);
+      contextJournals = await searchSimilarJournals(userId, embedding, 3);
       console.log(`[RAG] Found ${contextJournals.length} similar journals for context.`);
     } catch (e) {
       console.warn('[RAG] Retrieval failed, proceeding without context:', e);
@@ -44,6 +52,7 @@ export default defineEventHandler(async (event) => {
     const [inserted] = await db
       .insert(journals)
       .values({
+        userId,
         content,
         embedding,
         mood_score: finalMoodScore,

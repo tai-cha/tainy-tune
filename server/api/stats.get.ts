@@ -1,9 +1,15 @@
 import { journals, checkins } from '@server/db/schema';
 import { db } from '@server/db';
-import { desc, and, gte, lte, sql } from 'drizzle-orm';
+import { desc, and, gte, lte, eq, sql } from 'drizzle-orm';
 import { getValidDistortionKeys } from '@server/utils/locale';
+import { auth } from '@server/utils/auth';
 
 export default defineEventHandler(async (event) => {
+  const session = await auth.api.getSession({ headers: event.headers });
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+  const userId = session.user.id;
   const query = getQuery(event);
   // Default to last 30 days if not specified
   const endDate = query.endDate ? new Date(query.endDate as string) : new Date();
@@ -21,6 +27,7 @@ export default defineEventHandler(async (event) => {
       .from(journals)
       .where(
         and(
+          eq(journals.userId, userId),
           gte(journals.created_at, startDate),
           lte(journals.created_at, endDate)
         )
@@ -35,6 +42,7 @@ export default defineEventHandler(async (event) => {
       .from(checkins)
       .where(
         and(
+          eq(checkins.userId, userId),
           gte(checkins.created_at, startDate),
           lte(checkins.created_at, endDate)
         )

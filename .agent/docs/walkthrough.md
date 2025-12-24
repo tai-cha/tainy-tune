@@ -38,3 +38,21 @@ Interactive deep-dive into the user's logs.
 - **Embeddings**: Local extraction via Transformers.js (Xenova/multilingual-e5-small) running on CPU.
 - **i18n**: Fully localized (Japanese/English) via `@nuxtjs/i18n`.
 - **PWA**: Fully offline-capable via `@vite-pwa/nuxt`. Installed as "Tainy Tune".
+
+## 6. Authentication & Security (Phase 8)
+Multi-user support for secure personal use.
+- **Login**: Email/Password authentication via Better Auth.
+- **Admin Setup**: First user created is Admin (seeded via `INIT_ADMIN_PASSWORD`).
+- **Data Isolation**: All data (Journals, Chat, Vectors) is strictly isolated by `user_id`.
+- **Session Management**: Secure session cookies with automatic expiration.
+- **Route Protection**: 
+    - Unauthenticated access to `/` shows the **Landing Page** (via dynamic layout switching).
+    - Access to protected routes (e.g., `/journal`, `/history`) redirects to Login.
+    - Navigation guards handle both client-side and server-side authentication checks.
+
+### Verification of Multi-tenancy
+Since the app defaults to single-admin mode, verifying data isolation requires creating a secondary user via CLI:
+```bash
+npx tsx scripts/create-user.ts test@local.host password "Test User"
+```
+Login as this new user to confirm they cannot see the Admin's data.

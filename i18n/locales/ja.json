@@ -16,6 +16,10 @@
       "minute": "分"
     }
   },
+  "auth": {
+    "logout": "ログアウト",
+    "logoutConfirm": "ログアウトしてもよろしいですか？"
+  },
   "nav": {
     "dashboard": "ホーム",
     "journal": "日記を書く",

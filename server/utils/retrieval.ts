@@ -1,18 +1,13 @@
-import { cosineDistance, desc, gt, sql, ne, and } from 'drizzle-orm';
+import { cosineDistance, desc, gt, sql, ne, and, eq } from 'drizzle-orm';
 import { journals } from '@server/db/schema';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { env } from '~/utils/env';
+import { db } from '@server/db';
 
-const client = postgres(env.DATABASE_URL);
-const db = drizzle(client);
-
-export const searchSimilarJournals = async (queryEmbedding: number[], limit = 5, excludeId?: number) => {
+export const searchSimilarJournals = async (userId: string, queryEmbedding: number[], limit = 5, excludeId?: number) => {
   const similarity = sql<number>`1 - (${cosineDistance(journals.embedding, queryEmbedding)})`;
 
   const whereClause = excludeId
-    ? and(gt(similarity, 0.5), ne(journals.id, excludeId))
-    : gt(similarity, 0.5);
+    ? and(eq(journals.userId, userId), gt(similarity, 0.5), ne(journals.id, excludeId))
+    : and(eq(journals.userId, userId), gt(similarity, 0.5));
 
   return await db
     .select({

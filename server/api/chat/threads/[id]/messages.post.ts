@@ -1,6 +1,6 @@
 import { threads, messages, journals } from '@server/db/schema';
 
-import { eq, inArray, asc } from 'drizzle-orm';
+import { eq, inArray, asc, and } from 'drizzle-orm';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '~/utils/env';
 
@@ -10,7 +10,15 @@ import { db } from '@server/db';
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
+import { auth } from '~/server/utils/auth';
+
 export default defineEventHandler(async (event) => {
+  const session = await auth.api.getSession({ headers: event.headers });
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+  const userId = session.user.id;
+
   const id = getRouterParam(event, 'id');
   const body = await readBody(event);
   const { message, contextIds } = body;
@@ -20,6 +28,19 @@ export default defineEventHandler(async (event) => {
   }
 
   const threadId = parseInt(id);
+
+  // Security Verification: Ensure thread belongs to the authenticated user
+  const [existingThread] = await db.select()
+    .from(threads)
+    .where(and(
+      eq(threads.id, threadId),
+      eq(threads.userId, userId)
+    ))
+    .limit(1);
+
+  if (!existingThread) {
+    throw createError({ statusCode: 404, message: 'Thread not found' });
+  }
 
   try {
     // 1. Save User Message
@@ -69,7 +90,7 @@ export default defineEventHandler(async (event) => {
 
     // 2b. RAG Retrieval (Vector Search)
     const queryEmbedding = await getEmbedding(message);
-    const similarJournals = await searchSimilarJournals(queryEmbedding);
+    const similarJournals = await searchSimilarJournals(userId, queryEmbedding);
 
     // Filter out journals that are already explicitly included (to avoid duplication)
     const explicitIds = new Set((contextIds || []).map((cid: any) => Number(cid)));
@@ -98,7 +119,7 @@ export default defineEventHandler(async (event) => {
     // For now, let's use a System Instruction + History + New Query approach.
 
     const systemPrompt = `
-あなたは、ADHD特性を持つユーザーの親身なパートナー（メンタルケア・アシスタント）です。
+あなたは、ユーザーの親身なパートナー（メンタルケア・アシスタント）です。
 ユーザーの過去の記録（日記）を参照しながら、共感的かつ建設的な対話を行ってください。
 
 【参照情報の扱い方】

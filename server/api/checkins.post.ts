@@ -1,9 +1,16 @@
 import { defineEventHandler, readBody } from 'h3';
 import { db } from '@server/db'; // Shared db instance
 import { checkins } from '@server/db/schema';
-import { sql, desc, gt } from 'drizzle-orm';
+import { auth } from '@server/utils/auth';
+import { and, eq, sql, desc, gt } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
+  const session = await auth.api.getSession({ headers: event.headers });
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+  const userId = session.user.id;
+
   const body = await readBody(event);
   const { mood_score } = body;
 
@@ -16,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
   const existingCheckin = await db.select()
     .from(checkins)
-    .where(gt(checkins.created_at, oneHourAgo))
+    .where(and(eq(checkins.userId, userId), gt(checkins.created_at, oneHourAgo)))
     .orderBy(desc(checkins.created_at))
     .limit(1);
 
@@ -26,9 +33,9 @@ export default defineEventHandler(async (event) => {
     const updated = await db.update(checkins)
       .set({
         mood_score,
-        created_at: new Date() // Update timestamp to now? Or keep original? "Update mood_score & created_at" was the plan.
+        created_at: new Date() // Update timestamp to now
       })
-      .where(sql`${checkins.id} = ${targetId}`)
+      .where(and(eq(checkins.id, targetId), eq(checkins.userId, userId)))
       .returning();
 
     return { status: 'updated', data: updated[0] };
@@ -36,6 +43,7 @@ export default defineEventHandler(async (event) => {
     // 3. Insert new
     const inserted = await db.insert(checkins)
       .values({
+        userId,
         mood_score,
         created_at: new Date(),
       })

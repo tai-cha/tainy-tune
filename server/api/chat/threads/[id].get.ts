@@ -1,8 +1,8 @@
 import { threads, messages, journals } from '@server/db/schema';
 
-import { eq, asc, inArray } from 'drizzle-orm';
-
+import { eq, asc, inArray, and } from 'drizzle-orm';
 import { db } from '@server/db';
+import { auth } from '@server/utils/auth';
 
 
 export default defineEventHandler(async (event) => {
@@ -13,12 +13,17 @@ export default defineEventHandler(async (event) => {
 
   try {
     const threadId = parseInt(id);
+    const session = await auth.api.getSession({ headers: event.headers });
+    if (!session) {
+      throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+    }
+    const userId = session.user.id;
 
     // Fetch thread info
     const [thread] = await db
       .select()
       .from(threads)
-      .where(eq(threads.id, threadId));
+      .where(and(eq(threads.id, threadId), eq(threads.userId, userId)));
 
     if (!thread) {
       throw createError({ statusCode: 404, message: 'Thread not found' });

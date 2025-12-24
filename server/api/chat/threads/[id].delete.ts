@@ -1,8 +1,8 @@
 import { threads } from '@server/db/schema';
 
-import { eq } from 'drizzle-orm';
-
+import { eq, and } from 'drizzle-orm';
 import { db } from '@server/db';
+import { auth } from '@server/utils/auth';
 
 
 export default defineEventHandler(async (event) => {
@@ -11,7 +11,13 @@ export default defineEventHandler(async (event) => {
 
   try {
     const threadId = parseInt(id);
-    await db.delete(threads).where(eq(threads.id, threadId));
+    const session = await auth.api.getSession({ headers: event.headers });
+    if (!session) {
+      throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+    }
+    const userId = session.user.id;
+
+    await db.delete(threads).where(and(eq(threads.id, threadId), eq(threads.userId, userId)));
     return { success: true };
   } catch (error) {
     console.error('Failed to delete thread:', error);

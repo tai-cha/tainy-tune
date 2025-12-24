@@ -5,7 +5,15 @@ import { desc, and, gte, lte, ilike, or, eq, sql } from 'drizzle-orm';
 import { db } from '@server/db';
 
 
+import { auth } from '~/server/utils/auth';
+
 export default defineEventHandler(async (event) => {
+  const session = await auth.api.getSession({ headers: event.headers });
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+  const userId = session.user.id;
+
   const query = getQuery(event);
   const id = query.id as string | undefined;
   const startDate = query.startDate as string | undefined;
@@ -14,7 +22,7 @@ export default defineEventHandler(async (event) => {
   const limit = query.limit ? parseInt(query.limit as string) : undefined;
 
   // Build filters
-  const filters = [];
+  const filters = [eq(journals.userId, userId)];
   if (id) filters.push(eq(journals.id, Number(id)));
   if (startDate) filters.push(gte(journals.created_at, new Date(startDate)));
   if (endDate) filters.push(lte(journals.created_at, new Date(endDate)));
@@ -33,14 +41,17 @@ export default defineEventHandler(async (event) => {
       orConditions.push(sql`array_to_string(${journals.distortion_tags}, ' ') ILIKE ${`%${key}%`}`);
     });
 
-    filters.push(or(...orConditions));
+    const searchFilter = or(...orConditions);
+    if (searchFilter != null) {
+      filters.push(searchFilter);
+    }
   }
 
   try {
     let queryBuilder = db
       .select()
       .from(journals)
-      .where(and(...filters))
+      .where(and(...filters)!)
       .orderBy(desc(journals.created_at));
 
     if (limit) {

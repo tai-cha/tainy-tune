@@ -11,7 +11,15 @@ import { db } from '@server/db';
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
+import { auth } from '~/server/utils/auth';
+
 export default defineEventHandler(async (event) => {
+  const session = await auth.api.getSession({ headers: event.headers });
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+  const userId = session.user.id;
+
   const body = await readBody(event);
   const { initialContextIds, message } = body;
 
@@ -36,6 +44,7 @@ export default defineEventHandler(async (event) => {
       const [thread] = await tx
         .insert(threads)
         .values({
+          userId,
           title,
           context_ids: initialContextIds || null,
         })
@@ -87,7 +96,7 @@ export default defineEventHandler(async (event) => {
 
         // RAG Retrieval
         const queryEmbedding = await getEmbedding(message);
-        const similarJournals = await searchSimilarJournals(queryEmbedding);
+        const similarJournals = await searchSimilarJournals(userId, queryEmbedding);
         // Filter out duplicates
         const explicitIds = new Set(allContextIds.map((cid: any) => Number(cid)));
         const uniqueSimilarJournals = similarJournals.filter(j => !explicitIds.has(j.id));
@@ -101,7 +110,7 @@ export default defineEventHandler(async (event) => {
 
         // 2c. Generate Prompt
         const systemPrompt = `
-あなたは、ADHD特性を持つユーザーの親身なパートナー（メンタルケア・アシスタント）です。
+あなたは、ユーザーの親身なパートナー（メンタルケア・アシスタント）です。
 ユーザーの過去の記録（日記）を参照しながら、共感的かつ建設的な対話を行ってください。
 
 【参照情報の扱い方】

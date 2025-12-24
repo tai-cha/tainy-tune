@@ -3,12 +3,20 @@ import { analyzeJournal } from '@server/utils/ai';
 import { getEmbedding } from '@server/utils/embedding';
 import { searchSimilarJournals } from '@server/utils/retrieval';
 
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 import { db } from '@server/db';
 
 
+import { auth } from '~/server/utils/auth';
+
 export default defineEventHandler(async (event) => {
+  const session = await auth.api.getSession({ headers: event.headers });
+  if (!session) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+  const userId = session.user.id;
+
   const idStr = getRouterParam(event, 'id');
   if (!idStr || isNaN(Number(idStr))) {
     throw createError({ statusCode: 400, message: 'Invalid ID' });
@@ -20,7 +28,10 @@ export default defineEventHandler(async (event) => {
     const [journal] = await db
       .select()
       .from(journals)
-      .where(eq(journals.id, id));
+      .where(and(
+        eq(journals.id, id),
+        eq(journals.userId, userId)
+      ));
 
     if (!journal) {
       throw createError({ statusCode: 404, message: 'Journal not found' });
@@ -37,10 +48,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. Retrieve Context (RAG)
-    // Exclude current ID to avoid self-reference
     let contextJournals: any[] = [];
     try {
-      contextJournals = await searchSimilarJournals(embedding, 3, id);
+      contextJournals = await searchSimilarJournals(userId, embedding, 3, id);
       console.log(`[RAG] Found ${contextJournals.length} similar journals for context (Re-analysis).`);
     } catch (e) {
       console.warn('[RAG] Retrieval failed, proceeding without context:', e);

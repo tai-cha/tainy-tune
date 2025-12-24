@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon, ChartPieIcon, TrashIcon, EllipsisHorizontalIcon, StarIcon } from '@heroicons/vue/24/outline';
+import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon, ChartPieIcon, TrashIcon, EllipsisHorizontalIcon, StarIcon, ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/vue/24/solid';
 import { useRoute } from 'vue-router';
 import { ref, watch } from 'vue';
+import { signOut } from '~/app/utils/auth-client';
+
+const handleLogout = async () => {
+  if (!confirm(t('auth.logoutConfirm'))) return;
+  await signOut();
+  navigateTo('/');
+};
 
 const route = useRoute();
 const { t } = useI18n();
@@ -148,8 +155,24 @@ const deleteThread = async () => {
             {{ $t('chat.noThreads') }}
           </div>
         </div>
+
+
+        <div :class="$style.logoutWrapper">
+          <button @click="handleLogout" :class="$style.logoutBtn">
+            <ArrowLeftOnRectangleIcon :class="$style.icon" />
+            <span :class="$style.navLabel">{{ $t('auth.logout') }}</span>
+          </button>
+        </div>
       </nav>
     </aside>
+
+    <!-- Mobile Header -->
+    <header :class="$style.mobileHeader">
+      <div :class="$style.logoMobile">TainyTune</div>
+      <button @click="handleLogout" :class="$style.headerLogoutBtn">
+        <ArrowLeftOnRectangleIcon :class="$style.icon" />
+      </button>
+    </header>
 
     <!-- Main Content -->
     <main :class="$style.main">
@@ -191,9 +214,18 @@ const deleteThread = async () => {
 <style module>
 .layout {
   display: flex;
+  flex-direction: column;
+  /* Default to column for mobile (Header -> Main -> Footer) */
   min-height: 100vh;
   background-color: var(--color-bg-page);
   box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .layout {
+    flex-direction: row;
+    /* Row for Desktop (Sidebar | Main) */
+  }
 }
 
 .layout *,
@@ -225,6 +257,8 @@ const deleteThread = async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .navItem {
@@ -237,6 +271,7 @@ const deleteThread = async () => {
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .navItem:hover {
@@ -258,6 +293,7 @@ const deleteThread = async () => {
   height: 1px;
   background: var(--color-border);
   margin: 1rem 0;
+  flex-shrink: 0;
 }
 
 .threadsHeader {
@@ -267,6 +303,7 @@ const deleteThread = async () => {
   text-transform: uppercase;
   margin-bottom: 0.5rem;
   padding-left: 0.5rem;
+  flex-shrink: 0;
 }
 
 .threadList {
@@ -274,7 +311,9 @@ const deleteThread = async () => {
   flex-direction: column;
   gap: 0.25rem;
   overflow-y: auto;
-  max-height: 300px;
+  /* Use flex-grow to fill available space instead of fixed max-height */
+  flex: 1;
+  min-height: 0;
 }
 
 .threadItemWrapper {
@@ -442,13 +481,76 @@ const deleteThread = async () => {
   font-size: 0.75rem;
 }
 
+.mobileLogout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-danger);
+}
+
 .bottomNavItem.activeBottom {
   color: var(--color-primary);
+}
+
+.logoutWrapper {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--color-danger);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+  background-color: var(--color-bg-danger-light);
+}
+
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: white;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.logoMobile {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.headerLogoutBtn {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  padding: 0.5rem;
 }
 
 @media (min-width: 768px) {
   .sidebar {
     display: flex;
+  }
+
+  .mobileHeader {
+    display: none;
   }
 
   .main {

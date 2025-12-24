@@ -1,8 +1,8 @@
 import { threads } from '@server/db/schema';
 
-import { eq } from 'drizzle-orm';
-
+import { eq, and } from 'drizzle-orm';
 import { db } from '@server/db';
+import { auth } from '@server/utils/auth';
 
 
 export default defineEventHandler(async (event) => {
@@ -25,10 +25,16 @@ export default defineEventHandler(async (event) => {
 
 
 
+    const session = await auth.api.getSession({ headers: event.headers });
+    if (!session) {
+      throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+    }
+    const userId = session.user.id;
+
     const [updated] = await db
       .update(threads)
       .set(updateData)
-      .where(eq(threads.id, threadId))
+      .where(and(eq(threads.id, threadId), eq(threads.userId, userId)))
       .returning();
 
     return updated;
