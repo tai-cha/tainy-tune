@@ -59,6 +59,12 @@ export default defineEventHandler(async (event) => {
       queryBuilder = queryBuilder.limit(limit);
     }
 
+    const offset = query.offset ? parseInt(query.offset as string) : undefined;
+    if (offset) {
+      // @ts-ignore
+      queryBuilder = queryBuilder.offset(offset);
+    }
+
     const result = await queryBuilder;
 
     return result;

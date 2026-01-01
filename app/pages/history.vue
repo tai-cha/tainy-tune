@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { 
-  startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
-  eachDayOfInterval, format, isSameMonth, isSameDay, 
-  addMonths, subMonths 
+import {
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  eachDayOfInterval, format, isSameMonth, isSameDay,
+  addMonths, subMonths
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
@@ -11,6 +11,16 @@ const viewMode = ref<'month' | 'week' | 'list' | 'day'>('list');
 const currentDate = ref(new Date());
 const selectedDate = ref<Date | null>(null);
 const searchQuery = ref('');
+
+// List View State
+const allJournals = ref<any[]>([]);
+const page = ref(0);
+const limit = 20;
+const hasMore = ref(true);
+const isLoading = ref(false);
+const sentinel = ref<HTMLElement | null>(null);
+const observer = ref<IntersectionObserver | null>(null);
+
 
 // Calendar Logic
 const calendarDays = computed(() => {
@@ -39,7 +49,20 @@ const { data: journals, refresh } = await useFetch('/api/journals', {
         search: searchQuery.value || undefined,
       };
     }
-    // Default to month for calendar/list
+    // Default to month for calendar (excluding list view which has its own logic)
+    // We still return a valid query for list view to satisfy useFetch, but we might ignore its result in the UI for list view
+    // Or better, we can pause useFetch for list view if we want, but let's just let it run for month view cache basically.
+    // However, if we are in list view, we don't want to limit by date.
+    if (viewMode.value === 'list') {
+      return {
+        // Provide a dummy query or just typical month query so switching back to month view is fast?
+        // Actually, if we are in list view, we rely on loadMoreJournals.
+        // Let's just keep this as month query so it acts as "Calendar Data".
+        startDate: startOfMonth(currentDate.value).toISOString(),
+        endDate: endOfMonth(currentDate.value).toISOString(),
+        search: searchQuery.value || undefined,
+      };
+    }
     return {
       startDate: startOfMonth(currentDate.value).toISOString(),
       endDate: endOfMonth(currentDate.value).toISOString(),
@@ -47,6 +70,95 @@ const { data: journals, refresh } = await useFetch('/api/journals', {
     };
   }),
 });
+
+// Infinite Scroll Logic
+const loadMoreJournals = async (reset = false) => {
+  if (isLoading.value) return;
+  if (!reset && !hasMore.value) return;
+
+  isLoading.value = true;
+  if (reset) {
+    page.value = 0;
+    allJournals.value = [];
+    hasMore.value = true;
+  }
+
+  try {
+    const data = await $fetch('/api/journals', {
+      query: {
+        offset: page.value * limit,
+        limit: limit,
+        search: searchQuery.value || undefined,
+      }
+    });
+
+    if (data && Array.isArray(data)) {
+      if (data.length < limit) {
+        hasMore.value = false;
+      }
+      allJournals.value.push(...data);
+      page.value++;
+    }
+  } catch (e) {
+    console.error('Failed to load journals', e);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Search handling for list view
+watch(searchQuery, () => {
+  if (viewMode.value === 'list') {
+    loadMoreJournals(true);
+  }
+});
+
+// View mode handling
+watch(viewMode, async (newMode) => {
+  if (newMode === 'list') {
+    if (allJournals.value.length === 0) {
+      await loadMoreJournals(true);
+    }
+    setupObserver();
+  } else {
+    if (observer.value) {
+      observer.value.disconnect();
+    }
+  }
+});
+
+const setupObserver = () => {
+  if (observer.value) observer.value.disconnect();
+
+  observer.value = new IntersectionObserver((entries) => {
+    if (entries[0]?.isIntersecting && !isLoading.value && hasMore.value) {
+      loadMoreJournals();
+    }
+  }, {
+    rootMargin: '100px',
+  });
+
+  // Wait for DOM
+  setTimeout(() => {
+    if (sentinel.value) {
+      observer.value?.observe(sentinel.value);
+    }
+  }, 100);
+};
+
+onMounted(() => {
+  if (viewMode.value === 'list') {
+    loadMoreJournals(true);
+    setupObserver();
+  }
+});
+
+onUnmounted(() => {
+  if (observer.value) {
+    observer.value.disconnect();
+  }
+});
+
 
 // Navigation
 const prev = () => {
@@ -108,21 +220,15 @@ const selectedDayJournals = computed(() => {
   <div :class="$style.page">
     <header :class="$style.header">
       <h1 :class="$style.title">{{ $t('history.title') }}</h1>
-      
+
       <div :class="$style.controls">
         <div :class="$style.tabs">
-          <button
-            @click="viewMode = 'list'"
-            :class="[$style.tab, viewMode === 'list' && $style.activeTab]"
-          >{{ $t('history.tabs.list') }}</button>
-          <button
-            @click="viewMode = 'week'"
-            :class="[$style.tab, viewMode === 'week' && $style.activeTab]"
-          >{{ $t('history.tabs.week') }}</button>
-          <button
-            @click="viewMode = 'month'"
-            :class="[$style.tab, viewMode === 'month' && $style.activeTab]"
-          >{{ $t('history.tabs.month') }}</button>
+          <button @click="viewMode = 'list'" :class="[$style.tab, viewMode === 'list' && $style.activeTab]">{{
+            $t('history.tabs.list') }}</button>
+          <button @click="viewMode = 'week'" :class="[$style.tab, viewMode === 'week' && $style.activeTab]">{{
+            $t('history.tabs.week') }}</button>
+          <button @click="viewMode = 'month'" :class="[$style.tab, viewMode === 'month' && $style.activeTab]">{{
+            $t('history.tabs.month') }}</button>
         </div>
 
         <div :class="$style.monthNav" v-if="viewMode !== 'list' && viewMode !== 'day'">
@@ -135,18 +241,9 @@ const selectedDayJournals = computed(() => {
       <!-- Search Bar -->
       <div :class="$style.searchBar">
         <div :class="$style.searchInputWrapper">
-          <input
-            v-model.debounce.500ms="searchQuery"
-            type="text"
-            :placeholder="$t('history.search.placeholder')"
-            :class="$style.searchInput"
-          />
-          <button
-            v-if="searchQuery"
-            @click="searchQuery = ''"
-            :class="$style.clearBtn"
-            title="Clear search"
-          >✕</button>
+          <input v-model.debounce.500ms="searchQuery" type="text" :placeholder="$t('history.search.placeholder')"
+            :class="$style.searchInput" />
+          <button v-if="searchQuery" @click="searchQuery = ''" :class="$style.clearBtn" title="Clear search">✕</button>
         </div>
         <div v-if="searchQuery" :class="$style.searchStatus">
           {{ $t('history.search.results', { count: journals?.length || 0 }) }}
@@ -160,21 +257,13 @@ const selectedDayJournals = computed(() => {
         <div v-for="day in weekDays" :key="day" :class="$style.weekDay">{{ day }}</div>
       </div>
       <div :class="$style.days">
-        <div 
-          v-for="day in calendarDays" 
-          :key="day.toString()"
-          :class="[$style.day, !isSameMonth(day, currentDate) && $style.otherMonth]"
-          @click="selectDay(day)"
-        >
+        <div v-for="day in calendarDays" :key="day.toString()"
+          :class="[$style.day, !isSameMonth(day, currentDate) && $style.otherMonth]" @click="selectDay(day)">
           <span :class="$style.dayNumber">{{ format(day, 'd') }}</span>
-          
+
           <div :class="$style.dots">
-            <div 
-              v-for="j in getJournalsForDay(day)" 
-              :key="j.id"
-              :class="[$style.dot, j.mood_score && getMoodColor(j.mood_score)]"
-              :title="j.content"
-            ></div>
+            <div v-for="j in getJournalsForDay(day)" :key="j.id"
+              :class="[$style.dot, j.mood_score && getMoodColor(j.mood_score)]" :title="j.content"></div>
           </div>
         </div>
       </div>
@@ -185,22 +274,15 @@ const selectedDayJournals = computed(() => {
       <div :class="$style.chartContainer">
         <div v-for="day in currentWeekDays" :key="day.toString()" :class="$style.chartBarCol">
           <div :class="$style.chartBarTrack">
-            <div 
-              :class="[$style.chartBar, getMoodColor(getAvgMood(day))]" 
-              :style="{ height: `${getAvgMood(day) * 10}%` }"
-              v-if="getAvgMood(day) > 0"
-            ></div>
+            <div :class="[$style.chartBar, getMoodColor(getAvgMood(day))]"
+              :style="{ height: `${getAvgMood(day) * 10}%` }" v-if="getAvgMood(day) > 0"></div>
           </div>
           <span :class="$style.chartLabel">{{ format(day, 'E', { locale: ja }) }}</span>
         </div>
       </div>
 
       <div :class="$style.list">
-         <JournalCard 
-          v-for="journal in journals" 
-          :key="journal.id" 
-          :journal="journal" 
-        />
+        <JournalCard v-for="journal in journals" :key="journal.id" :journal="journal" />
         <div v-if="!journals?.length" :class="$style.empty">
           {{ $t('history.empty.week') }}
         </div>
@@ -217,23 +299,20 @@ const selectedDayJournals = computed(() => {
       <div v-if="!selectedDayJournals.length" :class="$style.empty">
         {{ $t('history.empty.day') }}
       </div>
-      <JournalCard 
-        v-for="journal in selectedDayJournals" 
-        :key="journal.id" 
-        :journal="journal" 
-      />
+      <JournalCard v-for="journal in selectedDayJournals" :key="journal.id" :journal="journal" />
     </div>
 
     <!-- List View -->
     <div v-else :class="$style.list">
-      <div v-if="!journals?.length" :class="$style.empty">
+      <div v-if="!allJournals?.length && !isLoading" :class="$style.empty">
         {{ $t('history.empty.general') }}
       </div>
-      <JournalCard 
-        v-for="journal in journals" 
-        :key="journal.id" 
-        :journal="journal" 
-      />
+      <JournalCard v-for="journal in allJournals" :key="journal.id" :journal="journal" />
+
+      <!-- Sentinel for infinite scroll -->
+      <div ref="sentinel" :class="$style.sentinel">
+        <div v-if="isLoading" :class="$style.loading">{{ $t('common.loading') }}...</div>
+      </div>
     </div>
   </div>
 </template>
@@ -272,7 +351,8 @@ const selectedDayJournals = computed(() => {
 .searchInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  padding-right: 2.5rem; /* Space for clear button */
+  padding-right: 2.5rem;
+  /* Space for clear button */
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -339,7 +419,7 @@ const selectedDayJournals = computed(() => {
 .activeTab {
   background: white;
   color: #3b82f6;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .monthNav {
@@ -372,7 +452,7 @@ const selectedDayJournals = computed(() => {
 .calendar {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
 }
 
@@ -433,9 +513,17 @@ const selectedDayJournals = computed(() => {
 }
 
 /* Utility classes for dot colors (using global CSS or style module composition would be better, but inline for now) */
-:global(.bg-blue-500) { background-color: #3b82f6; }
-:global(.bg-green-500) { background-color: #22c55e; }
-:global(.bg-orange-500) { background-color: #f97316; }
+:global(.bg-blue-500) {
+  background-color: #3b82f6;
+}
+
+:global(.bg-green-500) {
+  background-color: #22c55e;
+}
+
+:global(.bg-orange-500) {
+  background-color: #f97316;
+}
 
 /* List View */
 .list {
@@ -494,7 +582,7 @@ const selectedDayJournals = computed(() => {
   background: white;
   padding: 1rem;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   align-items: flex-end;
 }
 
@@ -520,7 +608,8 @@ const selectedDayJournals = computed(() => {
 .chartBar {
   width: 100%;
   border-radius: 6px;
-  min-height: 4px; /* Ensure visibility for low mood */
+  min-height: 4px;
+  /* Ensure visibility for low mood */
   transition: height 0.3s ease;
 }
 
@@ -528,5 +617,18 @@ const selectedDayJournals = computed(() => {
   font-size: 0.8rem;
   color: #64748b;
   font-weight: 500;
+}
+
+.sentinel {
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.loading {
+  color: #94a3b8;
+  font-size: 0.9rem;
 }
 </style>
