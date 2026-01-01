@@ -8,7 +8,8 @@ definePageMeta({
 const form = reactive({
   name: '',
   email: '',
-  password: ''
+  password: '',
+  passwordConfirm: ''
 });
 
 const loading = ref(false);
@@ -17,6 +18,12 @@ const errorMsg = ref('');
 async function handleSignup() {
   loading.value = true;
   errorMsg.value = '';
+
+  if (form.password !== form.passwordConfirm) {
+    errorMsg.value = 'パスワードが一致しません (Passwords do not match)';
+    loading.value = false;
+    return;
+  }
 
   try {
     const { data, error } = await authClient.signUp.email({
@@ -39,6 +46,8 @@ async function handleSignup() {
     loading.value = false;
   }
 }
+
+const { data: settings } = await useFetch('/api/settings/public');
 </script>
 
 <template>
@@ -49,7 +58,12 @@ async function handleSignup() {
         <p :class="$style.subtitle">{{ $t('signup.subtitle') }}</p>
       </div>
 
-      <form @submit.prevent="handleSignup" :class="$style.form">
+      <div v-if="settings && !settings.registrationEnabled" :class="$style.closedMessage">
+        <p>{{ $t('signup.closed') }}</p>
+        <NuxtLink to="/login" class="btn btn-primary" :class="$style.backBtn">{{ $t('common.back') }}</NuxtLink>
+      </div>
+
+      <form v-else @submit.prevent="handleSignup" :class="$style.form">
         <Transition name="fade">
           <div v-if="errorMsg" :class="$style.error">
             {{ errorMsg }}
@@ -69,6 +83,12 @@ async function handleSignup() {
         <div :class="$style.field">
           <label :class="$style.label">{{ $t('signup.form.password') }}</label>
           <input v-model="form.password" type="password" required minlength="8" :class="$style.input"
+            placeholder="••••••••" />
+        </div>
+
+        <div :class="$style.field">
+          <label :class="$style.label">{{ $t('signup.form.passwordConfirm') }}</label>
+          <input v-model="form.passwordConfirm" type="password" required minlength="8" :class="$style.input"
             placeholder="••••••••" />
         </div>
 
@@ -187,5 +207,18 @@ async function handleSignup() {
 
 .link:hover {
   text-decoration: underline;
+}
+
+.closedMessage {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--color-text-main);
+  font-weight: 500;
+}
+
+.backBtn {
+  margin-top: 1rem;
+  display: inline-block;
+  text-decoration: none;
 }
 </style>

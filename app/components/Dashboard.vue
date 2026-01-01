@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { PencilSquareIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline';
 
+import { useSession } from '~/app/utils/auth-client';
+import { computed } from 'vue';
+
 // User Greeting
 const { t } = useI18n();
+const session = useSession();
+const user = computed(() => session.value?.data?.user);
+
 const hours = new Date().getHours();
 const greeting = hours < 12
   ? t('common.greeting.morning')
@@ -21,7 +27,7 @@ const { data: recentJournals } = await useFetch('/api/journals', {
     <header :class="$style.header">
       <h1 :class="$style.greeting">
         <ClientOnly>
-          {{ $t('common.greeting.format', { greeting: greeting, name: $t('common.user') }) }}
+          {{ $t('common.greeting.format', { greeting: greeting, name: user?.name || $t('common.user') }) }}
         </ClientOnly>
       </h1>
       <p :class="$style.subtitle">{{ $t('dashboard.subtitle') }}</p>

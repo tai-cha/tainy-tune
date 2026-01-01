@@ -17,4 +17,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (!session) {
     return navigateTo('/login');
   }
+
+  // Admin route protection
+  if (to.path.startsWith('/admin') && to.path !== '/admin/setup') {
+    if (session.user.role !== 'admin') {
+      return navigateTo('/');
+    }
+  }
 });

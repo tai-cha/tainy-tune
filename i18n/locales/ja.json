@@ -25,7 +25,9 @@
     "journal": "日記を書く",
     "chat": "AIと話す",
     "history": "振り返る",
-    "insights": "分析"
+    "insights": "分析",
+    "admin": "管理",
+    "profile": "設定"
   },
   "dashboard": {
     "subtitle": "今の気分はどうですか？",
@@ -165,6 +167,7 @@
       "displayName": "表示名",
       "email": "メールアドレス",
       "password": "パスワード",
+      "passwordConfirm": "パスワード（確認）",
       "submit": "セットアップを完了",
       "submitting": "初期化中..."
     },
@@ -177,13 +180,15 @@
       "name": "名前",
       "email": "メールアドレス",
       "password": "パスワード",
+      "passwordConfirm": "パスワード（確認）",
       "submit": "登録する",
       "submitting": "アカウント作成中..."
     },
     "loginLink": {
       "text": "すでにアカウントをお持ちですか？",
       "link": "ログイン"
-    }
+    },
+    "closed": "現在、新規登録は受け付けていません。"
   },
   "login": {
     "title": "Tainy Tune",
@@ -201,6 +206,55 @@
     "signupLink": {
       "text": "アカウントをお持ちでないですか？",
       "link": "新規登録"
+    }
+  },
+  "admin": {
+    "title": "管理ダッシュボード",
+    "settings": {
+      "title": "システム設定",
+      "registration": "新規ユーザー登録",
+      "enabled": "受付中",
+      "disabled": "停止中"
+    },
+    "users": {
+      "title": "ユーザー管理",
+      "table": {
+        "name": "名前",
+        "email": "メールアドレス",
+        "role": "権限",
+        "joined": "登録日",
+        "actions": "操作"
+      },
+      "actions": {
+        "resetPassword": "パスワードリセット",
+        "confirmRole": "このユーザーの権限を {role} に変更してもよろしいですか？",
+        "promote": "権限の更新に失敗しました。",
+        "resetSuccess": "パスワードをリセットしました。",
+        "resetError": "パスワードのリセットに失敗しました: {message}",
+        "newPasswordPrompt": "新しいパスワードを入力してください:"
+      }
+    }
+  },
+  "profile": {
+    "title": "プロフィール設定",
+    "general": {
+      "title": "基本情報",
+      "name": "名前",
+      "email": "メールアドレス",
+      "emailHint": "メールアドレスの変更は現在サポートされていません。",
+      "save": "保存する",
+      "success": "プロフィールを更新しました。",
+      "error": "プロフィールの更新に失敗しました。"
+    },
+    "security": {
+      "title": "パスワード変更",
+      "current": "現在のパスワード",
+      "new": "新しいパスワード",
+      "confirm": "新しいパスワード（確認）",
+      "update": "パスワードを更新する",
+      "mismatch": "新しいパスワードが一致しません。",
+      "success": "パスワードを変更しました。",
+      "error": "パスワードの変更に失敗しました。"
     }
   }
 }

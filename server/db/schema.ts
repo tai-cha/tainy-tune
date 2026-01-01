@@ -12,6 +12,9 @@ export const users = pgTable('user', {
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
   role: roleEnum('role').default('user'),
+  banned: boolean('banned'),
+  banReason: text('banReason'),
+  banExpires: timestamp('banExpires'),
   settings: text('settings'), // Stored as JSON string or use jsonb if preferred
 });
 
@@ -99,4 +102,10 @@ export const meditations = pgTable('meditations', {
   userId: text('userId').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   duration_seconds: integer('duration_seconds').notNull(),
   created_at: timestamp('created_at').defaultNow(),
+});
+
+export const systemSettings = pgTable('system_settings', {
+  id: integer('id').primaryKey().default(1),
+  registrationEnabled: boolean('registration_enabled').default(true).notNull(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });

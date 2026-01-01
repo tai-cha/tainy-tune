@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon, ChartPieIcon, TrashIcon, EllipsisHorizontalIcon, StarIcon, ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/outline';
+import { HomeIcon, ClockIcon, PencilSquareIcon, ChatBubbleLeftRightIcon, ChartPieIcon, TrashIcon, EllipsisHorizontalIcon, StarIcon, ArrowLeftOnRectangleIcon, Cog6ToothIcon, ShieldCheckIcon } from '@heroicons/vue/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/vue/24/solid';
 import { useRoute } from 'vue-router';
-import { ref, watch } from 'vue';
-import { signOut } from '~/app/utils/auth-client';
+import { ref, watch, computed } from 'vue';
+import { signOut, useSession } from '~/app/utils/auth-client';
 
 const handleLogout = async () => {
   if (!confirm(t('auth.logoutConfirm'))) return;
@@ -13,21 +13,32 @@ const handleLogout = async () => {
 
 const route = useRoute();
 const { t } = useI18n();
+const session = useSession();
+const user = computed(() => session.value?.data?.user);
+const isAdmin = computed(() => (user.value as any)?.role === 'admin');
 
-const navigation = [
+const navigation = computed(() => [
   { name: 'nav.dashboard', href: '/', icon: HomeIcon },
   { name: 'nav.journal', href: '/journal', icon: PencilSquareIcon },
   { name: 'nav.chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
   { name: 'nav.history', href: '/history', icon: ClockIcon },
   { name: 'nav.insights', href: '/insights', icon: ChartPieIcon },
-];
+]);
+
+const adminNavigation = computed(() => [
+  { name: 'nav.profile', href: '/settings/profile', icon: Cog6ToothIcon },
+  ...(isAdmin.value ? [{ name: 'nav.admin', href: '/admin/dashboard', icon: ShieldCheckIcon }] : [])
+]);
 
 const isActive = (path: string) => route.path === path;
 
-// Fetch Recent Threads
-const { data: threads, refresh } = await useFetch('/api/chat/threads', { key: 'threads' });
+// Fetch Recent Threads (lazy to prevent blocking navigation)
+const { data: threads, refresh, error: threadsError } = useFetch('/api/chat/threads', {
+  key: 'threads',
+  lazy: true
+});
 
-// Ensure threads list is updated when navigating (e.g. after creating new chat)
+// Ensure threads list is updated when navigating
 watch(() => route.path, () => {
   refresh();
 });
@@ -103,10 +114,34 @@ const deleteThread = async () => {
     alert(t('chat.deleteError'));
   }
 };
+
+const mobileMenuOpen = ref(false);
+const mobileMenuPos = ref({ top: 0, left: 0 });
+
+const showMobileMenu = (event: MouseEvent) => {
+  event.stopPropagation();
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  mobileMenuPos.value = {
+    top: rect.bottom + 5,
+    left: rect.right
+  };
+  mobileMenuOpen.value = !mobileMenuOpen.value;
+  activeThread.value = null; // Close thread menu if open
+};
+
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false;
+};
+
+// Override closeMenu to also close mobile menu
+const closeAllMenus = () => {
+  activeThread.value = null;
+  mobileMenuOpen.value = false;
+};
 </script>
 
 <template>
-  <div :class="$style.layout" @click="closeMenu">
+  <div :class="$style.layout" @click="closeAllMenus">
     <!-- Desktop Sidebar -->
     <aside :class="$style.sidebar">
       <div :class="$style.logo">
@@ -133,6 +168,14 @@ const deleteThread = async () => {
         <NuxtLink to="/insights" :class="[$style.navItem, isActive('/insights') && $style.active]">
           <ChartPieIcon :class="$style.icon" />
           <span :class="$style.navLabel">{{ $t('nav.insights') }}</span>
+        </NuxtLink>
+
+        <!-- Settings Links -->
+        <div :class="$style.separator"></div>
+        <NuxtLink v-for="item in adminNavigation" :key="item.name" :to="item.href"
+          :class="[$style.navItem, isActive(item.href) && $style.active]">
+          <component :is="item.icon" :class="$style.icon" />
+          <span :class="$style.navLabel">{{ $t(item.name) }}</span>
         </NuxtLink>
 
         <!-- Threads List -->
@@ -169,10 +212,33 @@ const deleteThread = async () => {
     <!-- Mobile Header -->
     <header :class="$style.mobileHeader">
       <div :class="$style.logoMobile">TainyTune</div>
-      <button @click="handleLogout" :class="$style.headerLogoutBtn">
-        <ArrowLeftOnRectangleIcon :class="$style.icon" />
-      </button>
+
+      <div :class="$style.mobileMenuWrapper">
+        <button @click="(e) => showMobileMenu(e)" :class="$style.headerMenuBtn">
+          <EllipsisHorizontalIcon :class="$style.icon" />
+        </button>
+      </div>
     </header>
+
+    <!-- Mobile Menu Dropdown Teleport -->
+    <Teleport to="body">
+      <div v-if="mobileMenuOpen" :class="$style.menuDropdown"
+        :style="{ top: `${mobileMenuPos.top}px`, left: `${mobileMenuPos.left}px`, transform: 'translateX(-100%)' }">
+
+        <NuxtLink v-for="item in adminNavigation" :key="item.name" :to="item.href" :class="$style.menuItem"
+          @click="closeMobileMenu">
+          <component :is="item.icon" :class="$style.iconXs" />
+          {{ $t(item.name) }}
+        </NuxtLink>
+
+        <div :class="$style.menuSeparator"></div>
+
+        <button @click="handleLogout" :class="[$style.menuItem, $style.menuItemRed]">
+          <ArrowLeftOnRectangleIcon :class="$style.iconXs" />
+          {{ $t('auth.logout') }}
+        </button>
+      </div>
+    </Teleport>
 
     <!-- Main Content -->
     <main :class="$style.main">
@@ -418,6 +484,7 @@ const deleteThread = async () => {
   color: #475569;
   cursor: pointer;
   border-radius: 4px;
+  text-decoration: none;
 }
 
 .menuItem:hover {
@@ -536,12 +603,24 @@ const deleteThread = async () => {
   color: var(--color-primary);
 }
 
-.headerLogoutBtn {
+.headerMenuBtn {
   background: none;
   border: none;
-  color: var(--color-danger);
+  color: #64748b;
   cursor: pointer;
   padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.headerMenuBtn:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.menuSeparator {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0.25rem 0;
 }
 
 @media (min-width: 768px) {

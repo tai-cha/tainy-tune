@@ -36,6 +36,7 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+const { data: settings } = await useFetch('/api/settings/public');
 </script>
 
 <template>
@@ -69,7 +70,7 @@ const handleLogin = async () => {
         </button>
       </form>
 
-      <div :class="$style.footer">
+      <div v-if="settings?.registrationEnabled" :class="$style.footer">
         {{ $t('login.signupLink.text') }}
         <NuxtLink to="/signup" :class="$style.link">{{ $t('login.signupLink.link') }}</NuxtLink>
       </div>

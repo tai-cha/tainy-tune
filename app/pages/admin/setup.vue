@@ -17,6 +17,7 @@ const form = reactive({
   name: '',
   email: '',
   password: '',
+  passwordConfirm: '',
   initToken: ''
 });
 
@@ -26,6 +27,12 @@ const errorMsg = ref('');
 async function handleSetup() {
   loading.value = true;
   errorMsg.value = '';
+
+  if (form.password !== form.passwordConfirm) {
+    errorMsg.value = 'パスワードが一致しません (Passwords do not match)';
+    loading.value = false;
+    return;
+  }
 
   try {
     const res = await $fetch('/api/auth/setup', {
@@ -108,6 +115,17 @@ async function handleSetup() {
               <LockClosedIcon :class="$style.icon" />
             </div>
             <input v-model="form.password" type="password" required minlength="8" :class="$style.input"
+              placeholder="••••••••" />
+          </div>
+        </div>
+
+        <div :class="$style.formGroup">
+          <label :class="$style.label">{{ $t('setup.form.passwordConfirm') }}</label>
+          <div :class="$style.inputWrapper">
+            <div :class="$style.inputIcon">
+              <LockClosedIcon :class="$style.icon" />
+            </div>
+            <input v-model="form.passwordConfirm" type="password" required minlength="8" :class="$style.input"
               placeholder="••••••••" />
           </div>
         </div>

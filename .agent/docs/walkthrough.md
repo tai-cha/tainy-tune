@@ -56,3 +56,16 @@ Since the app defaults to single-admin mode, verifying data isolation requires c
 npx tsx scripts/create-user.ts test@local.host password "Test User"
 ```
 Login as this new user to confirm they cannot see the Admin's data.
+
+### Admin Dashboard (Phase 8)
+Accessible at `/admin/dashboard` for users with `admin` role.
+- **System Settings**: Toggle generic registration (Allow/Block new signups).
+- **User Management**: 
+    - List all registered users.
+    - Change roles (Promote to Admin / Demote to User).
+    - Reset user passwords directly.
+
+### User Profile
+Accessible at `/settings/profile`.
+- Update Display Name.
+- Change Password.

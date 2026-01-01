@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin } from "better-auth/plugins";
 import { db } from "~/server/db";
 import { users, sessions, accounts, verifications } from "~/server/db/schema";
 import { env } from "~/utils/env";
@@ -16,6 +17,9 @@ export const auth = betterAuth({
       verification: verifications
     }
   }),
+  plugins: [
+    admin()
+  ],
   emailAndPassword: {
     enabled: true
   },
@@ -28,7 +32,7 @@ export const auth = betterAuth({
     env.BETTER_AUTH_URL // Add production URL to trusted origins
   ],
   advanced: {
-    useSecureCookies: !isDev, // Secure in production
+    useSecureCookies: !isDev,
     cookiePrefix: "tainy-tune",
     defaultCookieAttributes: {
       secure: !isDev,

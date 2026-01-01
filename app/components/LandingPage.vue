@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Simple Landing Page
+const { data: settings } = await useFetch('/api/settings/public');
 </script>
 
 <template>
@@ -16,7 +17,7 @@
           ログインする
         </NuxtLink>
 
-        <div :class="$style.subLinks">
+        <div v-if="settings?.registrationEnabled" :class="$style.subLinks">
           <NuxtLink to="/signup" :class="$style.link">アカウント作成</NuxtLink>
         </div>
       </div>
