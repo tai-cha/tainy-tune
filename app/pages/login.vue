@@ -28,7 +28,7 @@ const handleLogin = async () => {
       return;
     }
 
-    await navigateTo('/');
+    await navigateTo('/', { external: true });
   } catch (e) {
     console.error('Unexpected login error:', e);
     errorMsg.value = '予期せぬエラーが発生しました。';

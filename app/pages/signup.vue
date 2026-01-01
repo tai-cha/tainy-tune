@@ -38,7 +38,7 @@ async function handleSignup() {
     }
 
     // Success - redirect home
-    await navigateTo('/');
+    await navigateTo('/', { external: true });
   } catch (err: any) {
     errorMsg.value = 'An unexpected error occurred.';
     console.error(err);
