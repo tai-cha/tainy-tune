@@ -17,8 +17,9 @@ const greeting = hours < 12
     : t('common.greeting.evening');
 
 // Recent Logs (Fetch last 3)
-const { data: recentJournals } = await useFetch('/api/journals', {
-  query: { limit: 3 }
+const { data: recentJournals } = useFetch('/api/journals', {
+  query: { limit: 3 },
+  lazy: true
 });
 </script>
 
