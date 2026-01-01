@@ -64,8 +64,9 @@ Accessible at `/admin/dashboard` for users with `admin` role.
     - List all registered users.
     - Change roles (Promote to Admin / Demote to User).
     - Reset user passwords directly.
+    - **Password Confirmation**: Added to Signup and Admin Setup forms for security.
 
 ### User Profile
 Accessible at `/settings/profile`.
 - Update Display Name.
-- Change Password.
+- Change Password (with confirmation).
