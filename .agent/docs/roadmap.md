@@ -76,6 +76,9 @@
     - [x] **UI Polish**:
         - [x] `/signup` や `/admin/setup` への `password_confirmation` (確認用パスワード入力) の追加。
         - [x] Dashboardへのユーザー名表示。
+- [ ] **Security Hardening**:
+    - [ ] **Captcha Integration**: Better AuthのCaptcha Pluginを使用し、Cloudflare TurnstileをLogin/Signupフォームへ導入する。
+    - [ ] **Rate Limiting**: Better Auth標準のRate Limit機能を有効化し、認証エンドポイントへの試行回数を制限する（例: 100 req/min, サインイン試行制限）。
 
 ## Phase 9: True Offline Capability
 **Goal**: 電波の届かない場所でも、心のケアを継続できるようにする。
