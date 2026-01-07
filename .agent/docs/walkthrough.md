@@ -50,6 +50,12 @@ Multi-user support for secure personal use.
     - Access to protected routes (e.g., `/journal`, `/history`) redirects to Login.
     - Navigation guards handle both client-side and server-side authentication checks.
 
+- **Security Hardening**:
+    - **Cloudflare Turnstile**: Integrated into Signup and Login forms to prevent bot attacks.
+    - **Rate Limiting**: 15 req/min on authentication endpoints, IP-based blocking.
+    - **Registration Control**: Admin can toggle new user registration ON/OFF from the dashboard.
+    - **Secret Management**: Turnstile keys are managed via Admin Dashboard (stored in DB).
+
 ### Verification of Multi-tenancy
 Since the app defaults to single-admin mode, verifying data isolation requires creating a secondary user via CLI:
 ```bash
@@ -59,7 +65,9 @@ Login as this new user to confirm they cannot see the Admin's data.
 
 ### Admin Dashboard (Phase 8)
 Accessible at `/admin/dashboard` for users with `admin` role.
-- **System Settings**: Toggle generic registration (Allow/Block new signups).
+- **System Settings**: 
+    - Toggle generic registration (Allow/Block new signups).
+    - Configure Turnstile Site Key & Secret Key.
 - **User Management**: 
     - List all registered users.
     - Change roles (Promote to Admin / Demote to User).

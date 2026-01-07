@@ -19,7 +19,13 @@
   },
   "auth": {
     "logout": "ログアウト",
-    "logoutConfirm": "ログアウトしてもよろしいですか？"
+    "logoutConfirm": "ログアウトしてもよろしいですか？",
+    "registration": {
+      "status": {
+        "enabled_desc": "現在、誰でも新規アカウントを作成できます。",
+        "disabled_desc": "新規アカウント作成は管理者により停止されています。"
+      }
+    }
   },
   "nav": {
     "dashboard": "ホーム",
@@ -215,7 +221,14 @@
       "title": "システム設定",
       "registration": "新規ユーザー登録",
       "enabled": "受付中",
-      "disabled": "停止中"
+      "disabled": "停止中",
+      "turnstile": {
+        "title": "Turnstile (Captcha)",
+        "siteKey": "Site Key",
+        "secretKey": "Secret Key",
+        "saved": "Turnstile設定を保存しました。",
+        "warning": "※設定を反映するにはサーバーの再起動が必要です。"
+      }
     },
     "users": {
       "title": "ユーザー管理",

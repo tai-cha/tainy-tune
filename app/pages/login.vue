@@ -21,7 +21,13 @@ const handleLogin = async () => {
     const { data, error } = await authClient.signIn.email({
       email: form.email,
       password: form.password,
-    });
+      fetchOptions: {
+        headers: {
+          'x-turnstile-response': token.value
+        }
+      }
+    }
+    );
 
     if (error) {
       errorMsg.value = 'ログインに失敗しました。メールアドレスかパスワードを確認してください。'; // Fallback
@@ -37,6 +43,8 @@ const handleLogin = async () => {
   }
 };
 const { data: settings } = await useFetch('/api/settings/public');
+const token = ref('');
+import VueTurnstile from 'vue-turnstile';
 </script>
 
 <template>
@@ -56,6 +64,10 @@ const { data: settings } = await useFetch('/api/settings/public');
         <div :class="$style.field">
           <label :class="$style.label">{{ $t('login.form.password') }}</label>
           <input v-model="form.password" type="password" required :class="$style.input" placeholder="••••••••" />
+        </div>
+
+        <div v-if="settings?.turnstileSiteKey && settings?.registrationEnabled" :class="$style.turnstileWrapper">
+          <VueTurnstile :site-key="settings.turnstileSiteKey" v-model="token" theme="light" />
         </div>
 
         <Transition name="fade">

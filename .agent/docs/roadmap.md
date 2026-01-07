@@ -76,9 +76,12 @@
     - [x] **UI Polish**:
         - [x] `/signup` や `/admin/setup` への `password_confirmation` (確認用パスワード入力) の追加。
         - [x] Dashboardへのユーザー名表示。
-- [ ] **Security Hardening**:
-    - [ ] **Captcha Integration**: Better AuthのCaptcha Pluginを使用し、Cloudflare TurnstileをLogin/Signupフォームへ導入する。
-    - [ ] **Rate Limiting**: Better Auth標準のRate Limit機能を有効化し、認証エンドポイントへの試行回数を制限する（例: 100 req/min, サインイン試行制限）。
+- [x] **Security Hardening**:
+    - [x] **Captcha Integration**: Better AuthのCaptcha Pluginを使用し、Cloudflare TurnstileをLogin/Signupフォームへ導入する。
+        - [x] Turnstileのキーの設定がされていない場合は、Captchaを無効化する。
+        - [x] system_settingsテーブルにTurnstileのキーを保存する。
+    - [x] **Rate Limiting**: Better Auth標準のRate Limit機能を有効化し、認証エンドポイントへの試行回数を制限する（例: 15 req/min, サインイン試行制限）。
+        - [x] ipごとに制限をかけ、制限を越えた場合は、一定時間のブロックをかける。
 
 ## Phase 9: True Offline Capability
 **Goal**: 電波の届かない場所でも、心のケアを継続できるようにする。

@@ -29,7 +29,12 @@ async function handleSignup() {
     const { data, error } = await authClient.signUp.email({
       email: form.email,
       password: form.password,
-      name: form.name
+      name: form.name,
+      fetchOptions: {
+        headers: {
+          'x-turnstile-response': token.value
+        }
+      }
     });
 
     if (error) {
@@ -48,6 +53,8 @@ async function handleSignup() {
 }
 
 const { data: settings } = await useFetch('/api/settings/public');
+const token = ref('');
+import VueTurnstile from 'vue-turnstile';
 </script>
 
 <template>
@@ -90,6 +97,10 @@ const { data: settings } = await useFetch('/api/settings/public');
           <label :class="$style.label">{{ $t('signup.form.passwordConfirm') }}</label>
           <input v-model="form.passwordConfirm" type="password" required minlength="8" :class="$style.input"
             placeholder="••••••••" />
+        </div>
+
+        <div v-if="settings?.turnstileSiteKey && settings?.registrationEnabled" :class="$style.turnstileWrapper">
+          <VueTurnstile :site-key="settings.turnstileSiteKey" v-model="token" theme="light" />
         </div>
 
         <button type="submit" :class="['btn-primary', $style.submitBtn]" :disabled="loading">

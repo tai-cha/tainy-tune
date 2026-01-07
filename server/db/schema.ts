@@ -107,5 +107,7 @@ export const meditations = pgTable('meditations', {
 export const systemSettings = pgTable('system_settings', {
   id: integer('id').primaryKey().default(1),
   registrationEnabled: boolean('registration_enabled').default(true).notNull(),
+  turnstileSiteKey: text('turnstile_site_key'),
+  turnstileSecretKey: text('turnstile_secret_key'),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

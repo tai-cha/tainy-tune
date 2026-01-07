@@ -88,6 +88,11 @@ export default defineNuxtConfig({
         },
       },
     },
+    esbuild: {
+      options: {
+        target: 'esnext',
+      },
+    },
     // The issue is hot-reload, which is fixed by global singleton in embedding.ts
     hooks: {
       'dev:reload': () => {

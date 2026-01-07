@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
   const settings = await db.select().from(systemSettings).limit(1);
   if (settings.length === 0) {
-    return { registrationEnabled: true };
+    return { registrationEnabled: true, turnstileSiteKey: null, turnstileSecretKey: null };
   }
   return settings[0];
 });
