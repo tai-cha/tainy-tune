@@ -60,9 +60,14 @@ export const useSync = () => {
           // Remove from queue on success
           await db.syncQueue.delete(task.id!);
 
-        } catch (e) {
-          console.error('Sync failed for task', task, e);
-          // Keep in queue for retry, unless 4xx fatal error?
+        } catch (e: any) {
+          const status = e.response?.status || e.status;
+          if (typeof status === 'number' && status >= 400 && status < 500) {
+            console.error(`Sync fatal error (${status}) for task`, task, e);
+            await db.syncQueue.delete(task.id!);
+          } else {
+            console.error(`Sync transient error (status: ${status ?? 'network'}) for task`, task, e);
+          }
         }
       }
     } catch (e) {
