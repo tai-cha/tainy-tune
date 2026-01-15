@@ -21,7 +21,7 @@ export const useJournalQuery = () => {
 
     if (isOnline) {
       try {
-        const query: any = {};
+        const query: Record<string, string | number | undefined> = {};
         if (params.startDate) query.startDate = new Date(params.startDate).toISOString();
         if (params.endDate) query.endDate = new Date(params.endDate).toISOString();
         if (params.search) query.search = params.search;
