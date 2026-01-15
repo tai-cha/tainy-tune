@@ -15,7 +15,7 @@ const moodColorClass = computed(() => {
   return style.moodBad;
 });
 
-const { online, pushChanges, getUUID } = useSync();
+const { online, getUUID } = useSync();
 
 async function submitJournal() {
   if (!content.value.trim()) return;
@@ -101,7 +101,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-            }}</span></label>
+        }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
