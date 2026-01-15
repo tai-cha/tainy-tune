@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     // Fetch top 3 similar journals to provide context
     let contextJournals: JournalEntry[] = [];
     try {
-      contextJournals = await searchSimilarJournals(userId, embedding, 3, id);
+      contextJournals = await searchSimilarJournals(userId, embedding, 3, id) satisfies JournalEntry[];
       console.log(`[RAG] Found ${contextJournals.length} similar journals for context.`);
     } catch (e) {
       console.warn('[RAG] Retrieval failed, proceeding without context:', e);
