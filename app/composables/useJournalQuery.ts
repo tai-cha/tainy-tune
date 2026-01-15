@@ -28,8 +28,12 @@ export const useJournalQuery = () => {
         if (params.limit) query.limit = params.limit;
         if (params.offset) query.offset = params.offset;
 
-        const data = await $fetch<JournalEntry[]>('/api/journals', { query });
-        return data;
+        const rawData = await $fetch<any[]>('/api/journals', { query });
+        return rawData.map((entry) => ({
+          ...entry,
+          createdAt: new Date(entry.createdAt),
+          updatedAt: entry.updatedAt ? new Date(entry.updatedAt) : null,
+        })) as JournalEntry[];
       } catch (e) {
         console.warn('Online fetch failed, falling back to local DB', e);
         // Fallback to local DB below
