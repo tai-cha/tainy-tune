@@ -95,21 +95,36 @@ export const useSync = () => {
       console.log('UserSync: Pulled journals from server:', journals); // Debug log
 
       if (journals && Array.isArray(journals) && journals.length > 0) {
-        const entries = journals.map((j: any) => ({
-          id: j.id, // Direct UUID from server/local
-          content: j.content,
-          moodScore: j.moodScore,
-          tags: j.tags,
-          distortionTags: j.distortionTags,
-          advice: j.advice,
-          fact: j.fact,
-          emotion: j.emotion,
-          createdAt: new Date(j.createdAt),
-          updatedAt: j.updatedAt ? new Date(j.updatedAt) : null,
-          synced: 1
-        }));
+        // 1. Get local unsynced entries to prevent overwriting
+        const unsyncedEntries = await db.journalEntries.where('synced').equals(0).toArray();
+        const unsyncedIds = new Set(unsyncedEntries.map(e => e.id));
 
-        await db.journalEntries.bulkPut(entries);
+        const entries = journals
+          .filter((j: any) => {
+            // 2. Conflict resolution: Skip if local has unsynced changes
+            if (unsyncedIds.has(j.id)) {
+              console.warn(`Conflict detected for journal ${j.id}. KEEPING local unsynced version.`);
+              return false;
+            }
+            return true;
+          })
+          .map((j: any) => ({
+            id: j.id, // Direct UUID from server/local
+            content: j.content,
+            moodScore: j.moodScore,
+            tags: j.tags,
+            distortionTags: j.distortionTags,
+            advice: j.advice,
+            fact: j.fact,
+            emotion: j.emotion,
+            createdAt: new Date(j.createdAt),
+            updatedAt: j.updatedAt ? new Date(j.updatedAt) : null,
+            synced: 1
+          }));
+
+        if (entries.length > 0) {
+          await db.journalEntries.bulkPut(entries);
+        }
       }
 
       lastSynced.value = new Date().toISOString();
