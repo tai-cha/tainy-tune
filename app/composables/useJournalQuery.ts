@@ -1,5 +1,6 @@
 import { db } from '~/utils/local-db';
 import type { JournalEntry } from '~/utils/local-db';
+import { useOnline } from '@vueuse/core';
 
 interface JournalQueryParams {
   startDate?: string | Date;
@@ -11,11 +12,12 @@ interface JournalQueryParams {
 
 export const useJournalQuery = () => {
   const { $client } = useNuxtApp();
+  const online = useOnline();
 
   const fetchJournals = async (params: JournalQueryParams) => {
     // Try online fetch first (if online)
     // We can check navigator.onLine but useFetch handles errors too.
-    const isOnline = navigator.onLine;
+    const isOnline = import.meta.client ? online.value : true;
 
     if (isOnline) {
       try {
