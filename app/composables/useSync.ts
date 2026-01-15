@@ -80,12 +80,16 @@ export const useSync = () => {
   /**
    * PULL SYNC: Fetch changes from server
    */
+  interface JournalPullQuery {
+    updatedAfter?: string;
+  }
+
   const pullChanges = async (forceFull = false) => {
     if (!online.value || isSyncing.value) return;
     isSyncing.value = true;
 
     try {
-      const query: any = {};
+      const query: JournalPullQuery = {};
       if (!forceFull && lastSynced.value) {
         query.updatedAfter = lastSynced.value;
       }
