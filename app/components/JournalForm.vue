@@ -59,12 +59,14 @@ async function submitJournal() {
         const response = await $fetch('/api/journal', {
           method: 'POST',
           body: {
+            id: uuid,
             content: content.value,
             mood: mood.value
           }
         });
 
         // Success! Update local sync status and result
+        // We use the uuid we generated (which matches response.id ideally)
         await db.journalEntries.update(uuid, { synced: 1 });
 
         result.value = response;
@@ -99,7 +101,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-        }}</span></label>
+            }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
