@@ -40,8 +40,6 @@ export const useSession = () => {
 
         if (getCurrentInstance()) {
             onMounted(loadCache);
-        } else {
-            setTimeout(loadCache, 0);
         }
     }
 
