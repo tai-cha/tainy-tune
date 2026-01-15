@@ -25,6 +25,13 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { content, moodScore, tags } = body;
 
+  if (typeof content !== 'string' || content.trim() === '') {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Content is required and must be a non-empty string.',
+    });
+  }
+
   // Fetch existing first to compare
   const [existing] = await db.select().from(journals).where(
     and(eq(journals.id, id), eq(journals.userId, session.user.id))
@@ -54,7 +61,7 @@ export default defineEventHandler(async (event) => {
   // 2. Perform Update
   try {
     let newEmbedding = undefined;
-    if (content && content !== existing.content) {
+    if (content !== existing.content) {
       newEmbedding = await getEmbedding(content);
     }
 
