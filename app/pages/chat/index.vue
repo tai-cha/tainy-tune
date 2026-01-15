@@ -1,8 +1,18 @@
 <script setup lang="ts">
-import { ChatBubbleLeftRightIcon, TrashIco } from '@heroicons/vue/24/outline'; // Check icons
+import { TrashIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'; // Check icons
+
+import { useOnline } from '@vueuse/core';
 
 const { t } = useI18n();
-const { data: threads, refresh } = await useFetch('/api/chat/threads', { key: 'threads' });
+const isOnline = useOnline();
+const { data: threads, refresh, error } = await useFetch('/api/chat/threads', {
+  key: 'threads',
+  immediate: isOnline.value,
+});
+
+watch(isOnline, (online) => {
+  if (online) refresh();
+});
 
 const deleteThread = async (id: number) => {
   if (!confirm(t('chat.confirmDelete'))) return;
@@ -22,34 +32,53 @@ const deleteThread = async (id: number) => {
       <p :class="$style.subtitle">{{ $t('chat.subtitle') }}</p>
     </header>
 
-    <div :class="$style.actions">
-      <NuxtLink to="/chat/new" :class="[$style.newChatBtn, 'btn-primary']">
-        <ChatBubbleLeftRightIcon :class="$style.icon" />
-        {{ $t('chat.newChat') }}
-      </NuxtLink>
-    </div>
-
-    <div :class="[$style.threadList, 'card']">
-      <h2 :class="$style.listTitle">{{ $t('chat.recentThreads') }}</h2>
-
-      <div v-if="!threads?.length" :class="$style.empty">
-        {{ $t('chat.noThreads') }}
-      </div>
-
-      <div v-for="thread in threads" :key="thread.id" :class="$style.threadItem">
-        <NuxtLink :to="`/chat/${thread.id}`" :class="$style.threadLink">
-          {{ thread.title }}
-          <span :class="$style.date">
-            <ClientOnly>
-              {{ new Date(thread.updated_at ?? thread.created_at ?? Date.now()).toLocaleDateString() }}
-            </ClientOnly>
-          </span>
-        </NuxtLink>
-        <button @click.prevent="deleteThread(thread.id)" :class="$style.deleteBtn">
-          <TrashIcon :class="$style.iconSm" />
+    <ClientOnly>
+      <div v-if="!isOnline || error" :class="[$style.empty, 'card']">
+        <div :class="$style.offlineIcon">{{ !isOnline ? '📶' : '⚠️' }}</div>
+        <h3>{{ !isOnline ? $t('common.offline') : $t('chat.error') }}</h3>
+        <p>
+          {{
+            !isOnline
+              ? $t('chat.offline_message') || 'Chat is unavailable while offline.'
+              : $t('chat.loadError')
+          }}
+        </p>
+        <button v-if="isOnline && error" @click="refresh()" class="btn-primary" style="margin-top: 1rem">
+          {{ $t('chat.retry') }}
         </button>
       </div>
-    </div>
+
+      <template v-else>
+        <div :class="$style.actions">
+          <NuxtLink to="/chat/new" :class="[$style.newChatBtn, 'btn-primary']">
+            <ChatBubbleLeftRightIcon :class="$style.icon" />
+            {{ $t('chat.newChat') }}
+          </NuxtLink>
+        </div>
+
+        <div :class="[$style.threadList, 'card']">
+          <h2 :class="$style.listTitle">{{ $t('chat.recentThreads') }}</h2>
+
+          <div v-if="!threads?.length" :class="$style.empty">
+            {{ $t('chat.noThreads') }}
+          </div>
+
+          <div v-for="thread in threads" :key="thread.id" :class="$style.threadItem">
+            <NuxtLink :to="`/chat/${thread.id}`" :class="$style.threadLink">
+              {{ thread.title }}
+              <span :class="$style.date">
+                <ClientOnly>
+                  {{ new Date(thread.updatedAt ?? thread.createdAt ?? Date.now()).toLocaleDateString() }}
+                </ClientOnly>
+              </span>
+            </NuxtLink>
+            <button @click.prevent="deleteThread(thread.id)" :class="$style.deleteBtn">
+              <TrashIcon :class="$style.iconSm" />
+            </button>
+          </div>
+        </div>
+      </template>
+    </ClientOnly>
   </div>
 </template>
 
@@ -168,5 +197,10 @@ const deleteThread = async (id: number) => {
 .iconSm {
   width: 20px;
   height: 20px;
+}
+
+.offlineIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
 </style>

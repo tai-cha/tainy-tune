@@ -5,16 +5,16 @@ import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon } from '@heroi
 
 const props = defineProps<{
   journal: {
-    id: number;
+    id: number | string;
     content: string;
-    mood_score: number | null;
-    tags: string[] | null;
-    distortion_tags: string[] | null;
-    advice: string | null;
-    fact: string | null;
-    emotion: string | null;
-    is_analysis_failed: boolean | null;
-    created_at: string | Date | null;
+    moodScore: number | null;
+    tags?: string[] | null;
+    distortionTags?: string[] | null;
+    advice?: string | null;
+    fact?: string | null;
+    emotion?: string | null;
+    isAnalysisFailed?: boolean | null;
+    createdAt: string | Date | null;
   };
   hideDiscussion?: boolean;
 }>();
@@ -76,11 +76,11 @@ const handleDelete = async () => {
       <div :class="$style.meta">
         <span :class="$style.metaText">
           <ClientOnly>
-            {{ formatDate(journal.created_at) }}
+            {{ formatDate(journal.createdAt) }}
           </ClientOnly>
         </span>
-        <span :class="getMoodClass(journal.mood_score)" v-if="journal.mood_score">
-          {{ $t('journalCard.mood') }}: {{ journal.mood_score }}
+        <span :class="getMoodClass(journal.moodScore)" v-if="journal.moodScore">
+          {{ $t('journalCard.mood') }}: {{ journal.moodScore }}
         </span>
       </div>
 
@@ -97,11 +97,11 @@ const handleDelete = async () => {
 
     <p :class="$style.content">{{ journal.content }}</p>
 
-    <div :class="$style.tags" v-if="journal.tags?.length || journal.distortion_tags?.length">
+    <div :class="$style.tags" v-if="journal.tags?.length || journal.distortionTags?.length">
       <span v-for="tag in journal.tags" :key="tag" :class="$style.tag">
         #{{ tag }}
       </span>
-      <span v-for="dist in journal.distortion_tags" :key="dist" :class="[$style.tag, $style.distortion]">
+      <span v-for="dist in journal.distortionTags" :key="dist" :class="[$style.tag, $style.distortion]">
         ⚠ {{ $te(`distortions.${dist}`) ? $t(`distortions.${dist}`) : dist }}
       </span>
     </div>
@@ -123,7 +123,7 @@ const handleDelete = async () => {
         <p :class="$style.adviceText">{{ journal.advice }}</p>
       </div>
 
-      <button v-if="journal.is_analysis_failed" @click="handleRetry" :class="$style.retryBtn" :disabled="isRetrying">
+      <button v-if="journal.isAnalysisFailed" @click="handleRetry" :class="$style.retryBtn" :disabled="isRetrying">
         <ArrowPathIcon :class="[$style.retryIcon, isRetrying && $style.spin]" />
         {{ isRetrying ? '分析中...' : '再分析' }}
       </button>

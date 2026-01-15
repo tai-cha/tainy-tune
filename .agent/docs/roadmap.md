@@ -84,10 +84,13 @@
         - [x] ipごとに制限をかけ、制限を越えた場合は、一定時間のブロックをかける。
 
 ## Phase 9: True Offline Capability
+- [x] PWA Service Worker (Cache Strategy)
+- [x] Offline Journaling (Dexie + Idempotency)
+- [x] Offline Authentication (LocalStorage Cache)
 **Goal**: 電波の届かない場所でも、心のケアを継続できるようにする。
-- **Offline Data Sync**: IndexedDB を活用し、オフラインで書いた日記やチェックインを一時保存。オンライン復帰時にサーバーへ同期（Background Sync）。
-- **Offline Meditation**: 瞑想ガイドやタイマー音声をキャッシュし、完全オフラインでの再生をサポート。
-- **Reliability**: ネットワーク不安定時の再試行ロジックの強化。
+- [x] **Offline Data Sync**: IndexedDB を活用し、オフラインで書いた日記やチェックインを一時保存。オンライン復帰時にサーバーへ同期（Background Sync）。
+- [x] **Offline Meditation**: 瞑想ガイドやタイマー音声をキャッシュし、完全オフラインでの再生をサポート。
+- [x] **Reliability**: ネットワーク不安定時の再試行ロジックの強化。
 
 ## Phase 10: Medication Management
 **Goal**: 服薬習慣の定着を支援し、ダイアリー（気分）との相関を可視化する。

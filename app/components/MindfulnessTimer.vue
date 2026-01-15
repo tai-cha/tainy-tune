@@ -50,7 +50,7 @@ async function finishTimer() {
   try {
     await $fetch('/api/meditations', {
       method: 'POST',
-      body: { duration_seconds: selectedDuration.value },
+      body: { durationSeconds: selectedDuration.value },
     });
     alert(t('dashboard.selfCare.timer.finished'));
   } catch (e) {

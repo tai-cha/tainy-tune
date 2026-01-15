@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, useCssModule } from 'vue';
+import { db } from '~/utils/local-db';
 
 const content = ref('');
 const mood = ref(5);
@@ -14,29 +15,80 @@ const moodColorClass = computed(() => {
   return style.moodBad;
 });
 
+const { online, pushChanges, getUUID } = useSync();
+
 async function submitJournal() {
   if (!content.value.trim()) return;
 
   loading.value = true;
-  result.value = null; // Reset result
+  result.value = null;
 
   try {
-    const response = await $fetch('/api/journal', {
-      method: 'POST',
-      body: {
-        content: content.value,
-        mood: mood.value,
-      },
-    });
+    const uuid = getUUID();
+    const entryData = {
+      id: uuid, // Local ID is UUID
+      content: content.value,
+      moodScore: mood.value,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      synced: 0,
+      clientUuid: uuid
+    };
 
-    // Show result
-    result.value = response;
-    content.value = '';
-    mood.value = 5;
+    // 1. Save Locally
+    await db.journalEntries.add(entryData);
 
+    // 2. Queue Sync Action (Always queue first or try direct?)
+    // If we queue first, we prevent race conditions.
+    // But for immediate feedback, we want to try direct if online.
+    // Hybrid:
+
+    if (!online.value) {
+      // Offline: Queue and Notify
+      await db.syncQueue.add({
+        action: 'create',
+        payload: { ...entryData, clientUuid: uuid }, // Send standard Payload
+        createdAt: new Date().getTime()
+      });
+      alert($t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
+      content.value = '';
+      mood.value = 5;
+    } else {
+      // Online: Try direct send (for immediate analysis result)
+      // We still save locally first (done above).
+      try {
+        const response = await $fetch('/api/journal', {
+          method: 'POST',
+          body: {
+            content: content.value,
+            mood: mood.value,
+            clientUuid: uuid
+          }
+        });
+
+        // Success! Update local sync status and result
+        await db.journalEntries.update(uuid, { synced: 1 });
+
+        result.value = response;
+        content.value = '';
+        mood.value = 5;
+
+      } catch (err) {
+        console.warn('Online submit failed, queuing instead:', err);
+        // Fallback to queue
+        await db.syncQueue.add({
+          action: 'create',
+          payload: { ...entryData, clientUuid: uuid },
+          createdAt: new Date().getTime()
+        });
+        alert($t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
+        content.value = '';
+        mood.value = 5;
+      }
+    }
   } catch (error) {
     console.error('Failed to save journal:', error);
-    alert('Failed to save journal. Please try again.');
+    alert($t('common.error'));
   } finally {
     loading.value = false;
   }
@@ -49,7 +101,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-        }}</span></label>
+            }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>

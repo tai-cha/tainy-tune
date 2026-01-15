@@ -1,6 +1,19 @@
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
+import { readFileSync, existsSync } from 'fs';
+import { createHash, randomUUID } from 'crypto';
+
 const require = createRequire(import.meta.url);
+
+const getOfflineRevision = () => {
+  try {
+    const filePath = fileURLToPath(new URL('./public/offline.html', import.meta.url));
+    if (existsSync(filePath)) {
+      return createHash('md5').update(readFileSync(filePath)).digest('hex');
+    }
+  } catch { }
+  return randomUUID();
+};
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -25,6 +38,7 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/pwa-192x192.png' },
+        { rel: 'prefetch', href: '/offline.html' },
       ],
       title: 'Tainy Tune', // Browser Tab Title
     },
@@ -33,15 +47,17 @@ export default defineNuxtConfig({
   css: ['~/app/assets/css/main.css'],
   modules: ['@nuxt/eslint', '@nuxt/test-utils', '@nuxtjs/i18n', '@vite-pwa/nuxt'],
   i18n: {
-    vueI18n: './i18n.config.ts', // optional, for legacy
     locales: [
-      { code: 'ja', file: 'ja.json' }
+      { code: 'ja' }
     ],
-    langDir: 'locales',
     defaultLocale: 'ja',
-    strategy: 'no_prefix', // Keep URLs simple for now
+    strategy: 'no_prefix'
   },
   pwa: {
+    strategies: 'injectManifest',
+    filename: 'service-worker.ts',
+    includeAssets: ['offline.html'],
+    srcDir: '.',
     manifest: {
       name: 'Tainy Tune',
       short_name: 'TainyTune',
@@ -64,12 +80,20 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
-      navigateFallback: '/',
+      // Force include offline.html with a unique revision
+      additionalManifestEntries: [
+        { url: '/offline.html', revision: getOfflineRevision() }
+      ],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600,
     },
     devOptions: {
       enabled: true,
       type: 'module',
+      suppressWarnings: true,
     },
   },
 
@@ -77,6 +101,7 @@ export default defineNuxtConfig({
     tsConfig: {
       compilerOptions: {
         esModuleInterop: true,
+        lib: ['ESNext', 'DOM', 'WebWorker'],
       },
     },
   },

@@ -1,6 +1,6 @@
 import { journals, checkins } from '@server/db/schema';
 import { db } from '@server/db';
-import { desc, and, gte, lte, eq, sql } from 'drizzle-orm';
+import { and, gte, eq } from 'drizzle-orm';
 import { getValidDistortionKeys } from '@server/utils/locale';
 import { auth } from '@server/utils/auth';
 
@@ -10,90 +10,90 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
   }
   const userId = session.user.id;
-  const query = getQuery(event);
-  // Default to last 30 days if not specified
-  const endDate = query.endDate ? new Date(query.endDate as string) : new Date();
-  const startDate = query.startDate
-    ? new Date(query.startDate as string)
-    : new Date(new Date().setDate(endDate.getDate() - 30));
+
+  // Defaults to 3 months for stats history
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
   try {
-    const records = await db
-      .select({
-        created_at: journals.created_at,
-        mood_score: journals.mood_score,
-        distortion_tags: journals.distortion_tags,
-      })
-      .from(journals)
-      .where(
-        and(
-          eq(journals.userId, userId),
-          gte(journals.created_at, startDate),
-          lte(journals.created_at, endDate)
-        )
-      )
-      .orderBy(desc(journals.created_at));
+    const [journalData, checkinData] = await Promise.all([
+      db
+        .select({
+          createdAt: journals.createdAt,
+          moodScore: journals.moodScore,
+          distortionTags: journals.distortionTags,
+        })
+        .from(journals)
+        .where(
+          and(
+            eq(journals.userId, userId),
+            gte(journals.createdAt, threeMonthsAgo)
+          )
+        ),
+      db
+        .select({
+          moodScore: checkins.moodScore,
+          createdAt: checkins.createdAt,
+        })
+        .from(checkins)
+        .where(
+          and(
+            eq(checkins.userId, userId),
+            gte(checkins.createdAt, threeMonthsAgo)
+          )
+        ),
+    ]);
 
-    const checkinRecords = await db
-      .select({
-        created_at: checkins.created_at,
-        mood_score: checkins.mood_score,
-      })
-      .from(checkins)
-      .where(
-        and(
-          eq(checkins.userId, userId),
-          gte(checkins.created_at, startDate),
-          lte(checkins.created_at, endDate)
-        )
-      )
-      .orderBy(desc(checkins.created_at));
+    // Merge for Mood History
+    // We want a unified list of { date, score }
+    const allMoods: { date: Date; score: number }[] = [];
 
-    // Aggregate mood scores by date (average if multiple per day)
+    journalData.forEach((j) => {
+      if (typeof j.moodScore === 'number' && j.createdAt) {
+        allMoods.push({ date: j.createdAt, score: j.moodScore });
+      }
+    });
+
+    checkinData.forEach((c) => {
+      if (typeof c.moodScore === 'number' && c.createdAt) {
+        allMoods.push({ date: c.createdAt, score: c.moodScore });
+      }
+    });
+
+    // Group by YYYY-MM-DD
     const moodMap: Record<string, { sum: number; count: number }> = {};
 
-    records.forEach(r => {
-      if (r.mood_score && r.created_at) {
-        const date = r.created_at.toISOString().split('T')[0];
-        if (!moodMap[date]) {
-          moodMap[date] = { sum: 0, count: 0 };
-        }
-        moodMap[date].sum += r.mood_score;
-        moodMap[date].count += 1;
+    allMoods.forEach((item) => {
+      const dateKey = item.date.toISOString().split('T')[0] || 'unknown';
+      if (!moodMap[dateKey]) {
+        moodMap[dateKey] = { sum: 0, count: 0 };
       }
+      moodMap[dateKey].sum += item.score;
+      moodMap[dateKey].count += 1;
     });
 
-    checkinRecords.forEach(r => {
-      if (r.mood_score && r.created_at) {
-        const date = r.created_at.toISOString().split('T')[0];
-        if (!moodMap[date]) {
-          moodMap[date] = { sum: 0, count: 0 };
-        }
-        moodMap[date].sum += r.mood_score;
-        moodMap[date].count += 1;
-      }
-    });
-
-    const moodHistory = Object.entries(moodMap)
-      .map(([date, data]) => ({
-        date,
-        score: Math.round((data.sum / data.count) * 10) / 10 // 1 decimal place
-      }))
+    const moodHistory = Object.keys(moodMap)
+      .map((date) => {
+        const data = moodMap[date];
+        if (!data) return { date, score: 0 };
+        return {
+          date,
+          score: Math.round((data.sum / data.count) * 10) / 10,
+        };
+      })
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Aggregate distortions
+    // Cleanup distortions
     const distortionCounts: Record<string, number> = {};
 
-    // Initialize all known keys to 0
-    getValidDistortionKeys().forEach(key => {
+    // Initialize standard keys
+    getValidDistortionKeys().forEach((key) => {
       distortionCounts[key] = 0;
     });
 
-    records.forEach(r => {
-      if (r.distortion_tags && Array.isArray(r.distortion_tags)) {
-        r.distortion_tags.forEach(tag => {
-          // Only increment if it's a valid key (or if you want to track unknown ones too, remove the check)
-          // For now, let's just increment safely.
+    journalData.forEach((j) => {
+      if (j.distortionTags && Array.isArray(j.distortionTags)) {
+        j.distortionTags.forEach((tag) => {
           distortionCounts[tag] = (distortionCounts[tag] || 0) + 1;
         });
       }
@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       moodHistory,
-      distortionCounts
+      distortionCounts,
     };
   } catch (error) {
     console.error('Failed to fetch stats:', error);

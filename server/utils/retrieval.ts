@@ -13,7 +13,7 @@ export const searchSimilarJournals = async (userId: string, queryEmbedding: numb
     .select({
       id: journals.id,
       content: journals.content,
-      created_at: journals.created_at,
+      createdAt: journals.createdAt,
       advice: journals.advice,
       similarity,
     })

@@ -56,6 +56,20 @@ async function toggleRegistration() {
   }
 }
 
+async function toggleJournalEditing() {
+  if (!settings.value) return;
+  loading.value = true;
+  try {
+    await $fetch('/api/admin/settings', {
+      method: 'PUT',
+      body: { allowJournalEditing: !settings.value.allowJournalEditing }
+    });
+    await refreshSettings();
+  } finally {
+    loading.value = false;
+  }
+}
+
 async function updateRole(userId: string, event: Event) {
   const select = event.target as HTMLSelectElement;
   const newRole = select.value;
@@ -116,6 +130,22 @@ const formatDate = (dateStr: string) => {
               :class="[$style.btnToggle, settings.registrationEnabled ? $style.enabled : $style.disabled]"
               :disabled="loading">
               {{ settings.registrationEnabled ? $t('admin.settings.enabled') : $t('admin.settings.disabled') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Journal Editing Card -->
+        <div v-if="settings" :class="['card', $style.card, $style.registrationCard]">
+          <h3 :class="$style.cardTitle">{{ $t('admin.settings.journalEditing.title') }}</h3>
+          <div :class="$style.settingContent">
+            <p :class="$style.settingDesc">
+              {{ settings.allowJournalEditing ? $t('admin.settings.journalEditing.enabled_desc') :
+                $t('admin.settings.journalEditing.disabled_desc') }}
+            </p>
+            <button @click="toggleJournalEditing"
+              :class="[$style.btnToggle, settings.allowJournalEditing ? $style.enabled : $style.disabled]"
+              :disabled="loading">
+              {{ settings.allowJournalEditing ? $t('admin.settings.enabled') : $t('admin.settings.disabled') }}
             </button>
           </div>
         </div>

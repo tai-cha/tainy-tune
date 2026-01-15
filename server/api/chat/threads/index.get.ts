@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(threads)
       .where(eq(threads.userId, userId))
-      .orderBy(sql`${threads.pinned_at} DESC NULLS LAST`, desc(threads.updated_at));
+      .orderBy(sql`${threads.pinnedAt} DESC NULLS LAST`, desc(threads.updatedAt));
 
     return allThreads;
   } catch (error) {

@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
   return {
     registrationEnabled: settings?.registrationEnabled ?? true,
     turnstileSiteKey: settings?.turnstileSiteKey || null,
+    allowJournalEditing: settings?.allowJournalEditing ?? false, // Safe access
     // Do NOT return secret key
   };
 });

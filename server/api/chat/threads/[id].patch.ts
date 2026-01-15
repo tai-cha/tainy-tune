@@ -19,8 +19,8 @@ export default defineEventHandler(async (event) => {
     if (typeof title !== 'undefined') updateData.title = title;
 
     if (typeof isPinned !== 'undefined') {
-      // If pinning, set pinned_at to now. If unpinning, set to null.
-      updateData.pinned_at = isPinned ? new Date() : null;
+      // If pinning, set pinnedAt to now. If unpinning, set to null.
+      updateData.pinnedAt = isPinned ? new Date() : null;
     }
 
 

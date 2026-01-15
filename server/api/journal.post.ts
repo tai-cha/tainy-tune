@@ -1,11 +1,12 @@
 import { journals } from '@server/db/schema';
-import { analyzeJournal } from '@server/utils/ai';
+import { analyzeJournal, type JournalEntry } from '@server/utils/ai';
 import { getEmbedding } from '@server/utils/embedding';
 import { searchSimilarJournals } from '@server/utils/retrieval';
 
 
 // Initialize Drizzle client
 import { db } from '@server/db';
+import { eq } from 'drizzle-orm';
 
 
 import { auth } from '~/server/utils/auth';
@@ -18,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const userId = session.user.id;
 
   const body = await readBody(event);
-  const { content, mood } = body;
+  const { content, mood, clientUuid } = body;
 
   if (!content || typeof content !== 'string') {
     throw createError({
@@ -27,14 +28,32 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Idempotency Check
+  if (clientUuid) {
+    const existing = await db.select().from(journals).where(eq(journals.clientUuid, clientUuid)).limit(1);
+    if (existing.length > 0) {
+      // Check if user ID matches? Should be safe as UUIDs are unique, but good practice.
+      if (existing.length > 0 && existing[0] && existing[0].userId !== userId) {
+        // Collision? Extremely rare for UUID v4.
+        console.error(`[Idempotency] UUID collision or hacking attempt for ${clientUuid}`);
+        // Treat as normal processing or error? Error safest.
+        throw createError({ statusCode: 409, statusMessage: "UUID Conflict" });
+      }
+      console.log(`[Idempotency] Skipping duplicate creation for UUID ${clientUuid}`);
+      return existing[0];
+    }
+  }
+
   try {
     // 1. Generate Embedding first (Sequential execution needed for RAG)
     const embedding = await getEmbedding(content);
 
+    // ... (rest of logic: context search, analysis)
+    // To match original indentation, I will just replicate context.
+
     // 2. Retrieve Context (RAG)
     // Fetch top 3 similar journals to provide context
-    // No excludeId needed for new entry (DB doesn't have it yet)
-    let contextJournals: any[] = [];
+    let contextJournals: JournalEntry[] = [];
     try {
       contextJournals = await searchSimilarJournals(userId, embedding, 3);
       console.log(`[RAG] Found ${contextJournals.length} similar journals for context.`);
@@ -46,7 +65,7 @@ export default defineEventHandler(async (event) => {
     const aiAnalysis = await analyzeJournal(content, contextJournals);
 
     // 4. Prepare Data (User input overrides AI mood if provided)
-    const finalMoodScore = typeof mood === 'number' ? mood : aiAnalysis.mood_score;
+    const finalMoodScore = typeof mood === 'number' ? mood : aiAnalysis.moodScore;
 
     // 5. Save to DB
     const [inserted] = await db
@@ -55,13 +74,14 @@ export default defineEventHandler(async (event) => {
         userId,
         content,
         embedding,
-        mood_score: finalMoodScore,
+        moodScore: finalMoodScore,
+        clientUuid: clientUuid || null, // Add clientUuid
         tags: aiAnalysis.tags,
-        distortion_tags: aiAnalysis.distortion_tags,
+        distortionTags: aiAnalysis.distortionTags,
         advice: aiAnalysis.advice,
         fact: aiAnalysis.fact,
         emotion: aiAnalysis.emotion,
-        is_analysis_failed: aiAnalysis.is_analysis_failed,
+        isAnalysisFailed: aiAnalysis.isAnalysisFailed,
       })
       .returning();
 

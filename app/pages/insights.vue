@@ -2,7 +2,20 @@
 import { ChartBarIcon } from '@heroicons/vue/24/outline'; // Or presentation-chart-line
 
 // Fetch stats
-const { data: stats, pending } = await useFetch('/api/stats');
+const { fetchStats } = useStatsQuery();
+
+const stats = ref<{ moodHistory: any[], distortionCounts: Record<string, number> } | null>(null);
+const pending = ref(true);
+
+onMounted(async () => {
+  try {
+    stats.value = await fetchStats();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    pending.value = false;
+  }
+});
 </script>
 
 <template>

@@ -46,16 +46,18 @@ export default defineEventHandler(async (event) => {
         .values({
           userId,
           title,
-          context_ids: initialContextIds || null,
+          contextIds: initialContextIds || null,
         })
         .returning({
           id: threads.id,
           title: threads.title,
-          context_ids: threads.context_ids,
-          pinned_at: threads.pinned_at,
-          created_at: threads.created_at,
-          updated_at: threads.updated_at
+          contextIds: threads.contextIds,
+          pinnedAt: threads.pinnedAt,
+          createdAt: threads.createdAt,
+          updatedAt: threads.updatedAt
         });
+
+      if (!thread) throw new Error("Failed to create thread");
 
       // 2. If message provided, process it immediately
       let newMessages: any[] = [];
@@ -63,7 +65,7 @@ export default defineEventHandler(async (event) => {
       if (message) {
         // 2a. Save User Message
         const [userMsg] = await tx.insert(messages).values({
-          thread_id: thread.id,
+          threadId: thread.id,
           role: 'user',
           content: message,
         }).returning();
@@ -84,8 +86,8 @@ export default defineEventHandler(async (event) => {
             contextText += '【ユーザーが指定した参照記録（コンテキスト）】:\n';
             targetJournals.forEach(j => {
               contextText += `
-[日付: ${j.created_at ? new Date(j.created_at).toLocaleDateString('ja-JP') : '不明'}]
-気分: ${j.mood_score ? j.mood_score + '/10' : '未記録'}
+[日付: ${j.createdAt ? new Date(j.createdAt).toLocaleDateString('ja-JP') : '不明'}]
+気分: ${j.moodScore ? j.moodScore + '/10' : '未記録'}
 タグ: ${j.tags ? j.tags.join(', ') : 'なし'}
 内容: ${j.content}
 (過去のAIアドバイス: ${j.advice || 'なし'})
@@ -135,7 +137,7 @@ export default defineEventHandler(async (event) => {
         const responseText = genResult.response.text();
 
         const [aiMsg] = await tx.insert(messages).values({
-          thread_id: thread.id,
+          threadId: thread.id,
           role: 'assistant',
           content: responseText,
         }).returning();

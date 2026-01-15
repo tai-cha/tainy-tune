@@ -8,13 +8,13 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { currentPassword, newPassword } = body;
 
-  const res = await auth.api.changePassword({
-    body: { currentPassword, newPassword },
-    headers: event.headers
-  });
-
-  if (res?.error) {
-    throw createError({ statusCode: 400, message: res.error.message });
+  try {
+    await auth.api.changePassword({
+      body: { currentPassword, newPassword },
+      headers: event.headers
+    });
+  } catch (error: any) {
+    throw createError({ statusCode: 400, message: error.body?.message || error.message || 'Failed to change password' });
   }
 
   return { success: true };

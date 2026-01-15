@@ -18,8 +18,7 @@ export default defineEventHandler(async (event) => {
     // Attempt to use setPassword if admin plugin exposes it via internal or api
     // Type casting auth.api for admin methods often needed if types aren't inferred
     // Check if auth.api.setPassword exists
-    // @ts-ignore
-    await auth.api.setPassword({
+    await auth.api.setUserPassword({
       body: {
         newPassword,
         userId

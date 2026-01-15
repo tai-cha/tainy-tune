@@ -1,4 +1,4 @@
-{
+export default {
   "common": {
     "greeting": {
       "format": "{greeting}、{name}さん",
@@ -79,7 +79,7 @@
     }
   },
   "journal": {
-    "title": "New Journal",
+    "title": "新しい日記",
     "subtitle": "今の気持ちや出来事を書き出しましょう",
     "form": {
       "mood": "今の気分",
@@ -89,17 +89,17 @@
     "offline_saved": "オフラインで保存しました。分析はオンライン時に実行されます。",
     "saved_queued": "保存しました。通信状況が改善次第、同期します。",
     "result": {
-      "title": "Analysis Result",
-      "mood": "Mood Score",
-      "tags": "Tags",
-      "distortions": "Cognitive Distortions",
-      "advice": "AI Advice",
+      "title": "分析結果",
+      "mood": "気分スコア",
+      "tags": "タグ",
+      "distortions": "認知の歪み",
+      "advice": "AIアドバイス",
       "backToHome": "ホームに戻る"
     },
     "discuss": "この記録について話す"
   },
   "history": {
-    "title": "History",
+    "title": "履歴",
     "tabs": {
       "list": "リスト",
       "week": "週間",
@@ -117,7 +117,7 @@
     "backToMonth": "月表示に戻る"
   },
   "chat": {
-    "title": "AI Partner",
+    "title": "AIパートナー",
     "subtitle": "いつでも話しかけてください",
     "placeholder": "メッセージを入力...",
     "send": "送信",
@@ -281,4 +281,4 @@
       "error": "パスワードの変更に失敗しました。"
     }
   }
-}
+} as const;

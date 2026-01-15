@@ -10,20 +10,17 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event);
-  const { registrationEnabled, turnstileSiteKey, turnstileSecretKey } = body;
+  const { registrationEnabled, turnstileSiteKey, turnstileSecretKey, allowJournalEditing } = body;
 
   const existing = await db.select().from(systemSettings).limit(1);
 
   if (existing.length === 0) {
     await db.insert(systemSettings).values({
       id: 1,
-      // Default to true if undefined, but it should be provided or default in schema? Schema default is true.
-      // But here we insert. If registrationEnabled is undefined, we should probably use default or true.
-      // However, usually first insert happens via seed or manual.
-      // If we insert here, we should provide values.
       registrationEnabled: registrationEnabled ?? true,
       turnstileSiteKey,
       turnstileSecretKey,
+      allowJournalEditing: allowJournalEditing ?? false, // Default to false
       updatedAt: new Date(),
     });
   } else {
@@ -31,10 +28,11 @@ export default defineEventHandler(async (event) => {
     if (registrationEnabled !== undefined) updateData.registrationEnabled = registrationEnabled;
     if (turnstileSiteKey !== undefined) updateData.turnstileSiteKey = turnstileSiteKey;
     if (turnstileSecretKey !== undefined) updateData.turnstileSecretKey = turnstileSecretKey;
+    if (allowJournalEditing !== undefined) updateData.allowJournalEditing = allowJournalEditing;
 
     await db.update(systemSettings)
       .set(updateData)
-      .where(eq(systemSettings.id, existing[0].id));
+      .where(eq(systemSettings.id, existing[0]!.id));
   }
 
   return { success: true };

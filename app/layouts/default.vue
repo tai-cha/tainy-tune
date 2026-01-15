@@ -70,7 +70,7 @@ const pinThread = async () => {
   const thread = activeThread.value;
   closeMenu();
   try {
-    const isCurrentlyPinned = !!thread.pinned_at;
+    const isCurrentlyPinned = !!thread.pinnedAt;
     await $fetch(`/api/chat/threads/${thread.id}`, {
       method: 'PATCH',
       body: { isPinned: !isCurrentlyPinned }
@@ -187,7 +187,7 @@ const closeAllMenus = () => {
             <NuxtLink :to="`/chat/${thread.id}`"
               :class="[$style.threadLink, isActive(`/chat/${thread.id}`) && $style.activeThread]">
               <span :class="$style.threadTitle">{{ thread.title }}</span>
-              <StarIconSolid v-if="thread.pinned_at" :class="$style.pinnedIcon" />
+              <StarIconSolid v-if="thread.pinnedAt" :class="$style.pinnedIcon" />
             </NuxtLink>
 
             <button @click="showMenu($event, thread)" :class="$style.menuBtn">
@@ -261,8 +261,8 @@ const closeAllMenus = () => {
       <div v-if="activeThread" :class="$style.menuDropdown"
         :style="{ top: `${menuPos.top}px`, left: `${menuPos.left}px` }">
         <button @click="pinThread" :class="$style.menuItem">
-          <component :is="activeThread.pinned_at ? StarIcon : StarIconSolid" :class="$style.iconXs" />
-          {{ activeThread.pinned_at ? $t('chat.unpin') : $t('chat.pin') }}
+          <component :is="activeThread.pinnedAt ? StarIcon : StarIconSolid" :class="$style.iconXs" />
+          {{ activeThread.pinnedAt ? $t('chat.unpin') : $t('chat.pin') }}
         </button>
         <button @click="renameThread" :class="$style.menuItem">
           <PencilSquareIcon :class="$style.iconXs" />

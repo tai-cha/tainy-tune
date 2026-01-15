@@ -78,3 +78,19 @@ Accessible at `/admin/dashboard` for users with `admin` role.
 Accessible at `/settings/profile`.
 - Update Display Name.
 - Change Password (with confirmation).
+
+## 7. Offline Capability (Phase 9)
+Seamless journaling regardless of network status.
+- **Offline Journaling**: Entries created offline are saved locally (IndexedDB) and synced automatically when online.
+- **Optimistic UI**: Interface reacts immediately to user input ("Saved!") without waiting for server network calls.
+- **Synchronization**:
+    - **Engine**: A dedicated `useSync` composable handles queue management and conflict resolution.
+    - **Backfill**: Existing data was migrated to support offline-generated UUIDs.
+    - **Idempotency**: Client-generated UUIDs prevent duplicate entries during network retries.
+- **Editing Control**: Admin can toggle whether journal entries are editable (Default: Disabled, for integrity).
+- **Meditation Assets**: Audio files are cached via Service Worker (Workbox) for offline playback.
+- **Page Caching**: Navigation requests use a `NetworkFirst` strategy to ensure visited pages are accessible offline.
+- **Offline Authentication**: Session data is cached locally. The `useSession` composable was updated to transparently provide cached credentials when offline.
+- **Offline Fallback**: 
+    - A custom `offline.html` provides a user-friendly error message when accessing unvisited pages while offline.
+    - Contains a direct link back to the App Shell (Home) to recover navigation.

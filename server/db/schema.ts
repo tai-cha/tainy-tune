@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, serial, text, vector, integer, timestamp, boolean, index, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, vector, integer, timestamp, boolean, index, pgEnum, uuid } from 'drizzle-orm/pg-core';
 
 export const roleEnum = pgEnum('role', ['user', 'admin']);
 
@@ -55,17 +55,19 @@ export const verifications = pgTable('verification', {
 });
 
 export const journals = pgTable('journals', {
-  id: serial('id').primaryKey(),
+  id: serial('id').primaryKey(), // Original ID was serial, not UUID? Migration prompt implies existing table.
   userId: text('userId').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   content: text('content').notNull(),
-  mood_score: integer('mood_score'),
-  tags: text('tags').array(),
-  distortion_tags: text('distortion_tags').array(),
-  advice: text('advice'),
-  fact: text('fact'),
-  emotion: text('emotion'),
-  is_analysis_failed: boolean('is_analysis_failed').default(false),
-  created_at: timestamp('created_at').defaultNow(),
+  moodScore: integer('moodScore'),
+  clientUuid: uuid('clientUuid').unique(), // Added for Phase 9
+  tags: text('tags').array(), // Original was arrays
+  distortionTags: text('distortionTags').array(), // Restore missing column
+  advice: text('advice'), // Restore missing column
+  fact: text('fact'), // Restore missing column
+  emotion: text('emotion'), // Restore missing column
+  isAnalysisFailed: boolean('isAnalysisFailed').default(false), // Restore missing column
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt'), // Note: Schema had updatedAt in previous version
   embedding: vector('embedding', { dimensions: 384 }),
 });
 
@@ -74,40 +76,41 @@ export const threads = pgTable('threads', {
   id: serial('id').primaryKey(),
   userId: text('userId').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   title: text('title').default('New Chat'),
-  context_ids: integer('context_ids').array(),
-  pinned_at: timestamp('pinned_at'),
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow(),
+  contextIds: integer('contextIds').array(),
+  pinnedAt: timestamp('pinnedAt'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
 }, (t) => ({
-  orderingIdx: index('threads_ordering_idx').on(sql`${t.pinned_at} DESC NULLS LAST`, t.updated_at.desc()),
+  orderingIdx: index('threads_ordering_idx').on(sql`${t.pinnedAt} DESC NULLS LAST`, t.updatedAt.desc()),
 }));
 
 export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
-  thread_id: integer('thread_id').references(() => threads.id, { onDelete: 'cascade' }).notNull(),
+  threadId: integer('threadId').references(() => threads.id, { onDelete: 'cascade' }).notNull(),
   role: text('role', { enum: ['user', 'assistant'] }).notNull(),
   content: text('content').notNull(),
-  created_at: timestamp('created_at').defaultNow(),
+  createdAt: timestamp('createdAt').defaultNow(),
 });
 
 export const checkins = pgTable('checkins', {
   id: serial('id').primaryKey(),
   userId: text('userId').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  mood_score: integer('mood_score').notNull(),
-  created_at: timestamp('created_at').defaultNow(),
+  moodScore: integer('moodScore').notNull(),
+  createdAt: timestamp('createdAt').defaultNow(),
 });
 
 export const meditations = pgTable('meditations', {
   id: serial('id').primaryKey(),
   userId: text('userId').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  duration_seconds: integer('duration_seconds').notNull(),
-  created_at: timestamp('created_at').defaultNow(),
+  durationSeconds: integer('durationSeconds').notNull(),
+  createdAt: timestamp('createdAt').defaultNow(),
 });
 
 export const systemSettings = pgTable('system_settings', {
   id: integer('id').primaryKey().default(1),
-  registrationEnabled: boolean('registration_enabled').default(true).notNull(),
-  turnstileSiteKey: text('turnstile_site_key'),
-  turnstileSecretKey: text('turnstile_secret_key'),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  registrationEnabled: boolean('registrationEnabled').default(true).notNull(),
+  turnstileSiteKey: text('turnstileSiteKey'),
+  turnstileSecretKey: text('turnstileSecretKey'),
+  allowJournalEditing: boolean('allowJournalEditing').default(false).notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
 });
