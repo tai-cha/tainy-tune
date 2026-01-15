@@ -1,5 +1,5 @@
 import { db } from '~/utils/local-db';
-import { startOfMonth, subMonths, format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 
 export const useStatsQuery = () => {
 
