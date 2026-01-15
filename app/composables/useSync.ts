@@ -39,17 +39,11 @@ export const useSync = () => {
               body: task.payload
             });
             // Update local entry sync status
-            if (task.payload.clientUuid) {
-              await db.journalEntries.where('id').equals(task.payload.clientUuid).modify({ synced: 1 });
-            }
-            // Note: payload.clientUuid should map to local DB id if we use UUID as PK in Dexie?
-            // In db.ts, journalEntries PK is 'id'. We should use the SAME UUID for both.
+            await db.journalEntries.update(task.payload.id, { synced: 1 });
+
           } else if (task.action === 'update') {
             if (!canEdit) {
               console.warn('Skipping update sync: Server editing disabled', task);
-              // We should probably remove it from queue to stop infinite retries?
-              // Or keep it until enabled? 
-              // User decision: "Discard or skip". Let's discard to keep queue clean.
               await db.syncQueue.delete(task.id!);
               continue;
             }
@@ -96,26 +90,19 @@ export const useSync = () => {
       console.log('UserSync: Pulled journals from server:', journals); // Debug log
 
       if (journals && Array.isArray(journals) && journals.length > 0) {
-        const entries = journals.map((j: any) => {
-          // Map response to local DB schema
-          // Handle potential snake_case vs camelCase issues from different Drizzle versions/configs
-          const clientUuid = j.clientUuid;
-          const remoteId = clientUuid ?? String(j.id);
-
-          return {
-            id: remoteId,
-            content: j.content,
-            moodScore: j.moodScore,
-            tags: j.tags,
-            distortionTags: j.distortionTags,
-            advice: j.advice,
-            fact: j.fact,
-            emotion: j.emotion,
-            createdAt: new Date(j.createdAt),
-            updatedAt: j.updatedAt ? new Date(j.updatedAt) : null,
-            synced: 1
-          };
-        });
+        const entries = journals.map((j: any) => ({
+          id: j.id, // Direct UUID from server/local
+          content: j.content,
+          moodScore: j.moodScore,
+          tags: j.tags,
+          distortionTags: j.distortionTags,
+          advice: j.advice,
+          fact: j.fact,
+          emotion: j.emotion,
+          createdAt: new Date(j.createdAt),
+          updatedAt: j.updatedAt ? new Date(j.updatedAt) : null,
+          synced: 1
+        }));
 
         await db.journalEntries.bulkPut(entries);
       }

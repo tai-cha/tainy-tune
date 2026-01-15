@@ -14,8 +14,8 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const id = parseInt(getRouterParam(event, 'id') || '');
-  if (isNaN(id)) {
+  const id = getRouterParam(event, 'id') || '';
+  if (!id) {
     throw createError({
       statusCode: 400,
       statusMessage: "Invalid ID",
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event);
-  const { content, moodScore, tags, clientUuid } = body;
+  const { content, moodScore, tags } = body;
 
   // Fetch existing first to compare
   const [existing] = await db.select().from(journals).where(
@@ -63,7 +63,6 @@ export default defineEventHandler(async (event) => {
       moodScore,
       isAnalysisFailed: false, // Reset flag on manual edit
       tags,
-      clientUuid,
       updatedAt: new Date(),
     };
 

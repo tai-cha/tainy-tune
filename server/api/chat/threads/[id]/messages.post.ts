@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
     const messageContextIds = (contextIds && Array.isArray(contextIds)) ? contextIds : [];
 
     // Merge unique IDs
-    const allContextIds = Array.from(new Set([...threadContextIds, ...messageContextIds].map(Number)));
+    const allContextIds = Array.from(new Set([...threadContextIds, ...messageContextIds]));
     let contextText = '';
 
     // 2a. Fetch Explicit Context
@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
     const similarJournals = await searchSimilarJournals(userId, queryEmbedding);
 
     // Filter out journals that are already explicitly included (to avoid duplication)
-    const explicitIds = new Set((contextIds || []).map((cid: any) => Number(cid)));
+    const explicitIds = new Set((allContextIds || []));
     const uniqueSimilarJournals = similarJournals.filter(j => !explicitIds.has(j.id));
 
     if (uniqueSimilarJournals.length > 0) {

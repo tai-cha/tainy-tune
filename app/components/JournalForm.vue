@@ -31,8 +31,7 @@ async function submitJournal() {
       moodScore: mood.value,
       createdAt: new Date(),
       updatedAt: new Date(),
-      synced: 0,
-      clientUuid: uuid
+      synced: 0
     };
 
     // 1. Save Locally
@@ -47,7 +46,7 @@ async function submitJournal() {
       // Offline: Queue and Notify
       await db.syncQueue.add({
         action: 'create',
-        payload: { ...entryData, clientUuid: uuid }, // Send standard Payload
+        payload: { ...entryData }, // Send standard Payload
         createdAt: new Date().getTime()
       });
       alert($t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
@@ -61,8 +60,7 @@ async function submitJournal() {
           method: 'POST',
           body: {
             content: content.value,
-            mood: mood.value,
-            clientUuid: uuid
+            mood: mood.value
           }
         });
 
@@ -78,7 +76,7 @@ async function submitJournal() {
         // Fallback to queue
         await db.syncQueue.add({
           action: 'create',
-          payload: { ...entryData, clientUuid: uuid },
+          payload: { ...entryData },
           createdAt: new Date().getTime()
         });
         alert($t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
@@ -101,7 +99,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-            }}</span></label>
+        }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>

@@ -1,7 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 
 export interface JournalEntry {
-  id: string | number; // UUID (client) or ID (server)
+  id: string; // UUID (client) or ID (server)
   content: string;
   moodScore: number | null;
   tags?: string[];

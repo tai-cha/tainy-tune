@@ -6,11 +6,10 @@ import { auth } from '@server/utils/auth';
 
 
 export default defineEventHandler(async (event) => {
-  const idStr = getRouterParam(event, 'id');
-  if (!idStr || isNaN(Number(idStr))) {
+  const id = getRouterParam(event, 'id');
+  if (!id) {
     throw createError({ statusCode: 400, message: 'Invalid ID' });
   }
-  const id = Number(idStr);
 
   const session = await auth.api.getSession({ headers: event.headers });
   if (!session) {

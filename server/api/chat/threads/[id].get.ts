@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       contextJournals = await db
         .select()
         .from(journals)
-        .where(inArray(journals.id, thread.contextIds));
+        .where(inArray(journals.id, thread.contextIds as string[]));
     }
 
     return {

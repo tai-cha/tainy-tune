@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
         const queryEmbedding = await getEmbedding(message);
         const similarJournals = await searchSimilarJournals(userId, queryEmbedding);
         // Filter out duplicates
-        const explicitIds = new Set(allContextIds.map((cid: any) => Number(cid)));
+        const explicitIds = new Set(allContextIds);
         const uniqueSimilarJournals = similarJournals.filter(j => !explicitIds.has(j.id));
 
         if (uniqueSimilarJournals.length > 0) {

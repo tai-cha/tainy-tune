@@ -55,19 +55,18 @@ export const verifications = pgTable('verification', {
 });
 
 export const journals = pgTable('journals', {
-  id: serial('id').primaryKey(), // Original ID was serial, not UUID? Migration prompt implies existing table.
+  id: uuid('id').primaryKey().defaultRandom(),
   userId: text('userId').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   content: text('content').notNull(),
   moodScore: integer('moodScore'),
-  clientUuid: uuid('clientUuid').unique(), // Added for Phase 9
-  tags: text('tags').array(), // Original was arrays
-  distortionTags: text('distortionTags').array(), // Restore missing column
-  advice: text('advice'), // Restore missing column
-  fact: text('fact'), // Restore missing column
-  emotion: text('emotion'), // Restore missing column
-  isAnalysisFailed: boolean('isAnalysisFailed').default(false), // Restore missing column
+  tags: text('tags').array(),
+  distortionTags: text('distortionTags').array(),
+  advice: text('advice'),
+  fact: text('fact'),
+  emotion: text('emotion'),
+  isAnalysisFailed: boolean('isAnalysisFailed').default(false),
   createdAt: timestamp('createdAt').defaultNow(),
-  updatedAt: timestamp('updatedAt'), // Note: Schema had updatedAt in previous version
+  updatedAt: timestamp('updatedAt'),
   embedding: vector('embedding', { dimensions: 384 }),
 });
 
@@ -76,7 +75,7 @@ export const threads = pgTable('threads', {
   id: serial('id').primaryKey(),
   userId: text('userId').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   title: text('title').default('New Chat'),
-  contextIds: integer('contextIds').array(),
+  contextIds: uuid('contextIds').array(),
   pinnedAt: timestamp('pinnedAt'),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),

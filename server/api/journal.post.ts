@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const userId = session.user.id;
 
   const body = await readBody(event);
-  const { content, mood, clientUuid } = body;
+  const { content, mood, id } = body;
 
   if (!content || typeof content !== 'string') {
     throw createError({
@@ -29,17 +29,14 @@ export default defineEventHandler(async (event) => {
   }
 
   // Idempotency Check
-  if (clientUuid) {
-    const existing = await db.select().from(journals).where(eq(journals.clientUuid, clientUuid)).limit(1);
+  if (id) {
+    const existing = await db.select().from(journals).where(eq(journals.id, id)).limit(1);
     if (existing.length > 0) {
-      // Check if user ID matches? Should be safe as UUIDs are unique, but good practice.
-      if (existing.length > 0 && existing[0] && existing[0].userId !== userId) {
-        // Collision? Extremely rare for UUID v4.
-        console.error(`[Idempotency] UUID collision or hacking attempt for ${clientUuid}`);
-        // Treat as normal processing or error? Error safest.
+      if (existing[0]?.userId !== userId) {
+        console.error(`[Idempotency] UUID collision or hacking attempt for ${id}`);
         throw createError({ statusCode: 409, statusMessage: "UUID Conflict" });
       }
-      console.log(`[Idempotency] Skipping duplicate creation for UUID ${clientUuid}`);
+      console.log(`[Idempotency] Skipping duplicate creation for UUID ${id}`);
       return existing[0];
     }
   }
@@ -48,14 +45,11 @@ export default defineEventHandler(async (event) => {
     // 1. Generate Embedding first (Sequential execution needed for RAG)
     const embedding = await getEmbedding(content);
 
-    // ... (rest of logic: context search, analysis)
-    // To match original indentation, I will just replicate context.
-
     // 2. Retrieve Context (RAG)
     // Fetch top 3 similar journals to provide context
     let contextJournals: JournalEntry[] = [];
     try {
-      contextJournals = await searchSimilarJournals(userId, embedding, 3);
+      contextJournals = await searchSimilarJournals(userId, embedding, 3, id);
       console.log(`[RAG] Found ${contextJournals.length} similar journals for context.`);
     } catch (e) {
       console.warn('[RAG] Retrieval failed, proceeding without context:', e);
@@ -71,11 +65,11 @@ export default defineEventHandler(async (event) => {
     const [inserted] = await db
       .insert(journals)
       .values({
+        id: id || undefined, // Use provided UUID or let DB generate (though client should provide it)
         userId,
         content,
         embedding,
         moodScore: finalMoodScore,
-        clientUuid: clientUuid || null, // Add clientUuid
         tags: aiAnalysis.tags,
         distortionTags: aiAnalysis.distortionTags,
         advice: aiAnalysis.advice,

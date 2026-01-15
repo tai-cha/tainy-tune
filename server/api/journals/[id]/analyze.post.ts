@@ -17,11 +17,10 @@ export default defineEventHandler(async (event) => {
   }
   const userId = session.user.id;
 
-  const idStr = getRouterParam(event, 'id');
-  if (!idStr || isNaN(Number(idStr))) {
+  const id = getRouterParam(event, 'id');
+  if (!id) {
     throw createError({ statusCode: 400, message: 'Invalid ID' });
   }
-  const id = Number(idStr);
 
   try {
     // 1. Fetch Journal

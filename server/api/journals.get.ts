@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
   // Build filters
   const filters = [eq(journals.userId, userId)];
-  if (id) filters.push(eq(journals.id, Number(id)));
+  if (id) filters.push(eq(journals.id, id));
   if (startDate) filters.push(gte(journals.createdAt, new Date(startDate)));
   if (endDate) filters.push(lte(journals.createdAt, new Date(endDate)));
   if (updatedAfter) {
