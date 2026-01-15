@@ -11,13 +11,28 @@ const LOCALES: Record<string, { distortions: DistortionMap }> = {
 };
 
 /**
- * Returns all valid distortion keys defined in the master locale (ja).
+ * Returns all valid distortion keys.
+ * If locale is provided, tries to use it first, then falls back to the master locale (ja).
+ * Throws an error if neither the requested locale nor the master locale is available.
+ * 
+ * @param locale - Optional locale code (e.g., 'en', 'ja'). Defaults to master locale 'ja'.
  */
-export const getValidDistortionKeys = (): string[] => {
-  if (!LOCALES.ja || !LOCALES.ja.distortions) {
-    throw new Error('Critical configuration error: LOCALES.ja or LOCALES.ja.distortions is undefined');
+export const getValidDistortionKeys = (locale?: string): string[] => {
+  const masterLocale = 'ja';
+  const targetLocale = locale || masterLocale;
+  
+  // Try the requested locale first
+  if (targetLocale !== masterLocale && LOCALES[targetLocale]?.distortions) {
+    return Object.keys(LOCALES[targetLocale].distortions);
   }
-  return Object.keys(LOCALES.ja.distortions);
+  
+  // Fall back to master locale (ja)
+  if (LOCALES[masterLocale]?.distortions) {
+    return Object.keys(LOCALES[masterLocale].distortions);
+  }
+  
+  // If neither exists, throw error
+  throw new Error('Critical configuration error: Master locale (ja) distortions not found');
 };
 
 /**
