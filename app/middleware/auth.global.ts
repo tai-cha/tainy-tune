@@ -10,7 +10,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Use getSession for both Server and Client to ensure consistent validation
   // passing fetchOptions with headers is crucial for SSR to send cookies to the auth API
   let session;
-  const isOffline = import.meta.client && !navigator.onLine;
   // Robust Strategy: Try Online -> Fallback to Cache
   // This handles both "Real Offline" (!navigator.onLine) and "Lie-fi" (Network Timeout/Error)
 
