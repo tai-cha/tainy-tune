@@ -61,7 +61,7 @@ async function submitJournal() {
           body: {
             id: uuid,
             content: content.value,
-            mood: mood.value
+            moodScore: mood.value
           }
         });
 

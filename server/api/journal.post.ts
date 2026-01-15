@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const userId = session.user.id;
 
   const body = await readBody(event);
-  const { content, mood, id } = body;
+  const { content, moodScore, id } = body;
 
   if (!content || typeof content !== 'string') {
     throw createError({
@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
     const aiAnalysis = await analyzeJournal(content, contextJournals);
 
     // 4. Prepare Data (User input overrides AI mood if provided)
-    const finalMoodScore = typeof mood === 'number' ? mood : aiAnalysis.moodScore;
+    const finalMoodScore = typeof moodScore === 'number' ? moodScore : aiAnalysis.moodScore;
 
     // 5. Save to DB
     const [inserted] = await db
