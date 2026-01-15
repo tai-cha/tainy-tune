@@ -38,7 +38,7 @@ registerRoute(
 
 // 2. API Cache (NetworkFirst)
 registerRoute(
-  /^\/api\/.*$/,
+  ({ url }) => url.pathname.startsWith('/api/'),
   new NetworkFirst({
     cacheName: 'api-cache-v3',
     networkTimeoutSeconds: 5,
