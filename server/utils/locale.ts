@@ -14,7 +14,10 @@ const LOCALES: Record<string, { distortions: DistortionMap }> = {
  * Returns all valid distortion keys defined in the master locale (ja).
  */
 export const getValidDistortionKeys = (): string[] => {
-  return Object.keys(LOCALES.ja?.distortions || {});
+  if (!LOCALES.ja || !LOCALES.ja.distortions) {
+    throw new Error('Critical configuration error: LOCALES.ja or LOCALES.ja.distortions is undefined');
+  }
+  return Object.keys(LOCALES.ja.distortions);
 };
 
 /**
