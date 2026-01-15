@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
     const moodMap: Record<string, { sum: number; count: number }> = {};
 
     allMoods.forEach((item) => {
-      const dateKey = item.date.toISOString().split('T')[0] || 'unknown';
+      const dateKey = item.date.toISOString().split('T')[0];
       if (!moodMap[dateKey]) {
         moodMap[dateKey] = { sum: 0, count: 0 };
       }
