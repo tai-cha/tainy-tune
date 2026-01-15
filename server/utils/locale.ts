@@ -3,6 +3,9 @@ import ja from '~/i18n/locales/ja.json';
 // Type for the distortion map structure
 type DistortionMap = Record<string, string>;
 
+// Master locale used as fallback
+const MASTER_LOCALE = 'ja';
+
 // Register available locales here. 
 // Function can be expanded to support 'en', 'es', etc.
 const LOCALES: Record<string, { distortions: DistortionMap }> = {
@@ -18,21 +21,18 @@ const LOCALES: Record<string, { distortions: DistortionMap }> = {
  * @param locale - Optional locale code (e.g., 'en', 'ja'). Defaults to master locale 'ja'.
  */
 export const getValidDistortionKeys = (locale?: string): string[] => {
-  const masterLocale = 'ja';
-  const targetLocale = locale || masterLocale;
-  
-  // Try the requested locale first
-  if (targetLocale !== masterLocale && LOCALES[targetLocale]?.distortions) {
-    return Object.keys(LOCALES[targetLocale].distortions);
+  // Try the requested locale first if it's provided and different from master
+  if (locale && locale !== MASTER_LOCALE && LOCALES[locale]?.distortions) {
+    return Object.keys(LOCALES[locale].distortions);
   }
   
   // Fall back to master locale (ja)
-  if (LOCALES[masterLocale]?.distortions) {
-    return Object.keys(LOCALES[masterLocale].distortions);
+  if (LOCALES[MASTER_LOCALE]?.distortions) {
+    return Object.keys(LOCALES[MASTER_LOCALE].distortions);
   }
   
-  // If neither exists, throw error
-  throw new Error('Critical configuration error: Master locale (ja) distortions not found');
+  // If master locale doesn't exist, throw error
+  throw new Error(`Critical configuration error: Master locale (${MASTER_LOCALE}) distortions not found`);
 };
 
 /**
