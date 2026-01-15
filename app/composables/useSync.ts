@@ -99,8 +99,8 @@ export const useSync = () => {
         const entries = journals.map((j: any) => {
           // Map response to local DB schema
           // Handle potential snake_case vs camelCase issues from different Drizzle versions/configs
-          const uuid = j.clientUuid;
-          const remoteId = uuid || j.id; // Fallback to ID if UUID is missing (shouldn't happen for new entries)
+          const clientUuid = j.clientUuid;
+          const remoteId = clientUuid ?? String(j.id);
 
           return {
             id: remoteId,
