@@ -40,7 +40,7 @@ export const useSync = () => {
             });
             // Update local entry sync status
             const id = task.payload?.id;
-            if (!id) {
+            if (id == null) {
               console.error('Sync error: Missing payload ID for create task', task);
             } else {
               await db.journalEntries.update(id, { synced: 1 });
