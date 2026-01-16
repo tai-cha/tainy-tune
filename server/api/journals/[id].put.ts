@@ -5,6 +5,8 @@ import { db } from '~/server/db';
 import { auth } from '~/server/utils/auth';
 import { getEmbedding } from '~/server/utils/embedding';
 
+type JournalUpdatePayload = Partial<typeof journals.$inferInsert>;
+
 export default defineEventHandler(async (event) => {
   const session = await auth.api.getSession({ headers: event.headers });
   if (!session) {
@@ -76,7 +78,7 @@ export default defineEventHandler(async (event) => {
 
   // Update database
   try {
-    const updateData: any = {
+    const updateData: JournalUpdatePayload = {
       content,
       moodScore,
       isAnalysisFailed: false, // Reset flag on manual edit
