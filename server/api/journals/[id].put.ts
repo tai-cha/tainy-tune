@@ -59,12 +59,23 @@ export default defineEventHandler(async (event) => {
   }
 
   // 2. Perform Update
-  try {
-    let newEmbedding = undefined;
-    if (content !== existing.content) {
+  let newEmbedding = undefined;
+  
+  // Generate embedding first if content changed
+  if (content !== existing.content) {
+    try {
       newEmbedding = await getEmbedding(content);
+    } catch (error) {
+      console.error('Failed to generate embedding:', error);
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to generate embedding for journal content.',
+      });
     }
+  }
 
+  // Update database
+  try {
     const updateData: any = {
       content,
       moodScore,
