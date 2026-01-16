@@ -11,7 +11,6 @@ interface JournalQueryParams {
 }
 
 export const useJournalQuery = () => {
-  const { $client } = useNuxtApp();
   const online = useOnline();
 
   const fetchJournals = async (params: JournalQueryParams) => {
