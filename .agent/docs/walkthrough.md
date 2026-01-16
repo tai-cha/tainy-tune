@@ -87,7 +87,7 @@ Seamless journaling regardless of network status.
     - **Engine**: A dedicated `useSync` composable handles queue management and conflict resolution.
     - **Backfill**: Existing data was migrated to support offline-generated UUIDs.
     - **Idempotency**: Client-generated UUIDs prevent duplicate entries during network retries.
-- **Editing Control**: Admin can toggle whether journal entries are editable (Default: Disabled, for integrity).
+- **Editing Control**: Admin can toggle whether journal entries are editable. When disabled, local updates are automatically marked as synced (resolved) to prevent UI conflicts.
 - **Meditation Assets**: Audio files are cached via Service Worker (Workbox) for offline playback.
 - **Page Caching**: Navigation requests use a `NetworkFirst` strategy to ensure visited pages are accessible offline.
 - **Offline Authentication**: Session data is cached locally. The `useSession` composable was updated to transparently provide cached credentials when offline.

@@ -39,12 +39,19 @@ export const useSync = () => {
               body: task.payload
             });
             // Update local entry sync status
-            await db.journalEntries.update(task.payload.id, { synced: 1 });
+            const id = task.payload?.id;
+            if (!id) {
+              console.error('Sync error: Missing payload ID for create task', task);
+            } else {
+              await db.journalEntries.update(id, { synced: 1 });
+            }
 
           } else if (task.action === 'update') {
             if (!canEdit) {
               console.warn('Skipping update sync: Server editing disabled', task);
               await db.syncQueue.delete(task.id!);
+              // Mark as synced locally since we resolved the queue item (by ignoring the server update)
+              await db.journalEntries.update(task.payload.id, { synced: 1 });
               continue;
             }
             await $fetch(`/api/journals/${task.payload.id}`, { // task.payload.id is the UUID
