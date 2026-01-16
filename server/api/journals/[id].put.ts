@@ -76,7 +76,16 @@ export default defineEventHandler(async (event) => {
 
   // Update database
   try {
-    const updateData: any = {
+    interface JournalUpdatePayload {
+      content: string;
+      moodScore?: number | null;
+      isAnalysisFailed: boolean;
+      tags?: string[] | null;
+      updatedAt: Date;
+      embedding?: number[];
+    }
+
+    const updateData: JournalUpdatePayload = {
       content,
       moodScore,
       isAnalysisFailed: false, // Reset flag on manual edit
