@@ -31,7 +31,7 @@ export const useJournalQuery = () => {
         const rawData = await $fetch<JournalEntry[]>('/api/journals', { query });
         return rawData.map((entry) => ({
           ...entry,
-          createdAt: entry.createdAt ? new Date(entry.createdAt) : new Date(),
+          createdAt: new Date(entry.createdAt),
           updatedAt: entry.updatedAt ? new Date(entry.updatedAt) : null,
         }));
       } catch (e) {
