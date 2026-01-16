@@ -72,15 +72,11 @@ export default defineEventHandler(async (event) => {
       moodMap[dateKey].count += 1;
     });
 
-    const moodHistory = Object.keys(moodMap)
-      .map((date) => {
-        const data = moodMap[date];
-        if (!data) return { date, score: 0 };
-        return {
-          date,
-          score: Math.round((data.sum / data.count) * 10) / 10,
-        };
-      })
+    const moodHistory = Object.entries(moodMap)
+      .map(([date, data]) => ({
+        date,
+        score: Math.round((data.sum / data.count) * 10) / 10,
+      }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
     // Cleanup distortions
