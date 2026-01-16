@@ -9,7 +9,6 @@ dist
 # Node dependencies
 node_modules
 .pnpm-store
-package-lock.json
 
 # Logs
 logs
