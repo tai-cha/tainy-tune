@@ -59,13 +59,13 @@ export default defineEventHandler(async (event) => {
   }
 
   // 2. Perform Update
-  let newEmbedding = undefined;
+  let newEmbedding: number[] | undefined;
   
   // Generate embedding first if content changed
   if (content !== existing.content) {
     try {
       newEmbedding = await getEmbedding(content);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to generate embedding:', error);
       throw createError({
         statusCode: 500,
@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
 
     return updated;
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to update journal:', error);
     throw createError({
       statusCode: 500,
