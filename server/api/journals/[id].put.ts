@@ -5,6 +5,15 @@ import { db } from '~/server/db';
 import { auth } from '~/server/utils/auth';
 import { getEmbedding } from '~/server/utils/embedding';
 
+interface JournalUpdatePayload {
+  content: string;
+  moodScore?: number | null;
+  isAnalysisFailed: boolean;
+  tags?: string[] | null;
+  updatedAt: Date;
+  embedding?: number[];
+}
+
 export default defineEventHandler(async (event) => {
   const session = await auth.api.getSession({ headers: event.headers });
   if (!session) {
@@ -76,15 +85,6 @@ export default defineEventHandler(async (event) => {
 
   // Update database
   try {
-    interface JournalUpdatePayload {
-      content: string;
-      moodScore?: number | null;
-      isAnalysisFailed: boolean;
-      tags?: string[] | null;
-      updatedAt: Date;
-      embedding?: number[];
-    }
-
     const updateData: JournalUpdatePayload = {
       content,
       moodScore,
