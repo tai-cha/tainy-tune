@@ -60,8 +60,9 @@ export const useSync = () => {
             });
             await db.journalEntries.update(task.payload.id, { synced: 1 });
           } else if (task.action === 'delete') {
-            // Implement delete API if needed
             await $fetch(`/api/journals/${task.payload.id}`, { method: 'DELETE' });
+            // Also remove from local DB
+            await db.journalEntries.delete(task.payload.id);
           }
 
           // Remove from queue on success
