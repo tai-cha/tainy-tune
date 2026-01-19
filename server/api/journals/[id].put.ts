@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Perform Update
   let newEmbedding: number[] | undefined;
-  let aiAnalysis: any;
+  let aiAnalysis: Awaited<ReturnType<typeof analyzeJournal>> | undefined;
   let analysisFailed = false;
 
   // Generate embedding first if content changed
