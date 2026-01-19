@@ -50,9 +50,7 @@ const fetchCalendarData = async () => {
     query.endDate = endOfWeek(currentDate.value);
     query.search = searchQuery.value || undefined;
   } else if (viewMode.value === 'list') {
-    // List view handles its own data via infinite scroll, so we don't necessarily need this unless for shared logic
-    // But original code fetched data for list mode too in the main watcher.
-    // To keep it simple, we skip main fetch for list view in favor of loadMoreJournals
+    journals.value = [];
     return;
   } else {
     // Month / Day (Day view logic uses month data usually, or specific fetch)
@@ -72,9 +70,7 @@ const fetchCalendarData = async () => {
 
 // Initial Fetch & Watchers
 watch([currentDate, viewMode, searchQuery], () => {
-  if (viewMode.value !== 'list') {
-    fetchCalendarData();
-  }
+  fetchCalendarData();
 }, { immediate: true });
 
 
