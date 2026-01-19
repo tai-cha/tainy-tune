@@ -7,9 +7,20 @@ CREATE TABLE "system_settings" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-ALTER TABLE "journals" ADD COLUMN "client_uuid" uuid;--> statement-breakpoint
-ALTER TABLE "journals" ADD COLUMN "updatedAt" timestamp;--> statement-breakpoint
-ALTER TABLE "user" ADD COLUMN "banned" boolean;--> statement-breakpoint
-ALTER TABLE "user" ADD COLUMN "banReason" text;--> statement-breakpoint
-ALTER TABLE "user" ADD COLUMN "banExpires" timestamp;--> statement-breakpoint
-ALTER TABLE "journals" ADD CONSTRAINT "journals_client_uuid_unique" UNIQUE("client_uuid");
+ALTER TABLE "journals"
+ADD COLUMN "client_uuid" uuid;
+--> statement-breakpoint
+ALTER TABLE "journals"
+ADD COLUMN "updatedAt" timestamp;
+--> statement-breakpoint
+ALTER TABLE "user"
+ADD COLUMN "banned" boolean DEFAULT false NOT NULL;
+--> statement-breakpoint
+ALTER TABLE "user"
+ADD COLUMN "banReason" text;
+--> statement-breakpoint
+ALTER TABLE "user"
+ADD COLUMN "banExpires" timestamp;
+--> statement-breakpoint
+ALTER TABLE "journals"
+ADD CONSTRAINT "journals_client_uuid_unique" UNIQUE("client_uuid");
