@@ -12,7 +12,7 @@ export const users = pgTable('user', {
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
   role: roleEnum('role').default('user'),
-  banned: boolean('banned'),
+  banned: boolean('banned').default(false).notNull(),
   banReason: text('banReason'),
   banExpires: timestamp('banExpires'),
   settings: text('settings'), // Stored as JSON string or use jsonb if preferred
