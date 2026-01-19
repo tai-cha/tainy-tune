@@ -96,7 +96,6 @@ const renameThread = async () => {
         body: { title: newTitle }
       });
       refresh();
-      refresh();
     } catch (e) {
       toastError(t('chat.renameError') || 'Failed to rename thread');
     }
