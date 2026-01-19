@@ -15,6 +15,25 @@ const moodColorClass = computed(() => {
   return style.moodBad;
 });
 
+const props = defineProps<{
+  initialJournal?: {
+    id: string;
+    content: string;
+    moodScore: number;
+    createdAt?: Date | string;
+    [key: string]: any;
+  }
+}>();
+
+const emit = defineEmits(['update:success']);
+
+// Initialize with props if available
+if (props.initialJournal) {
+  content.value = props.initialJournal.content;
+  mood.value = props.initialJournal.moodScore;
+}
+
+
 const { online, getUUID } = useSync();
 
 async function submitJournal() {
@@ -24,18 +43,25 @@ async function submitJournal() {
   result.value = null;
 
   try {
-    const uuid = getUUID();
+    const isEdit = !!props.initialJournal;
+    // Use existing ID if editing, otherwise generate new
+    const uuid = isEdit ? props.initialJournal!.id : getUUID();
+
     const entryData = {
-      id: uuid, // Local ID is UUID
+      id: uuid,
       content: content.value,
       moodScore: mood.value,
-      createdAt: new Date(),
+      createdAt: isEdit && props.initialJournal?.createdAt ? new Date(props.initialJournal.createdAt) : new Date(),
       updatedAt: new Date(),
       synced: 0
     };
 
     // 1. Save Locally
-    await db.journalEntries.add(entryData);
+    if (isEdit) {
+      await db.journalEntries.update(uuid, entryData);
+    } else {
+      await db.journalEntries.add(entryData);
+    }
 
     // 2. Queue Sync Action (Always queue first or try direct?)
     // If we queue first, we prevent race conditions.
@@ -44,20 +70,36 @@ async function submitJournal() {
 
     if (!online.value) {
       // Offline: Queue and Notify
-      await db.syncQueue.add({
-        action: 'create',
-        payload: { ...entryData }, // Send standard Payload
-        createdAt: new Date().getTime()
-      });
-      alert($t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
-      content.value = '';
-      mood.value = 5;
+      if (isEdit) {
+        await db.journalEntries.update(uuid, entryData);
+        await db.syncQueue.add({
+          action: 'update',
+          payload: { ...entryData },
+          createdAt: new Date().getTime()
+        });
+        alert($t('journal.offline_updated') || 'Updated offline.');
+      } else {
+        await db.syncQueue.add({
+          action: 'create',
+          payload: { ...entryData },
+          createdAt: new Date().getTime()
+        });
+        alert($t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
+      }
+
+      if (!isEdit) {
+        content.value = '';
+        mood.value = 5;
+      }
     } else {
       // Online: Try direct send (for immediate analysis result)
       // We still save locally first (done above).
       try {
-        const response = await $fetch('/api/journal', {
-          method: 'POST',
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit ? `/api/journals/${uuid}` : '/api/journal';
+
+        const response = await $fetch(url, {
+          method,
           body: {
             id: uuid,
             content: content.value,
@@ -70,20 +112,29 @@ async function submitJournal() {
         await db.journalEntries.update(uuid, { synced: 1 });
 
         result.value = response;
-        content.value = '';
-        mood.value = 5;
+
+        if (!isEdit) {
+          content.value = '';
+          mood.value = 5;
+        } else {
+          // If editing, maybe we want to emit success or just show result
+          emit('update:success', response);
+        }
 
       } catch (err) {
         console.warn('Online submit failed, queuing instead:', err);
         // Fallback to queue
         await db.syncQueue.add({
-          action: 'create',
+          action: isEdit ? 'update' : 'create',
           payload: { ...entryData },
           createdAt: new Date().getTime()
         });
         alert($t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
-        content.value = '';
-        mood.value = 5;
+
+        if (!isEdit) {
+          content.value = '';
+          mood.value = 5;
+        }
       }
     }
   } catch (error) {
@@ -114,7 +165,7 @@ async function submitJournal() {
       <div :class="$style.actions">
         <button type="submit" :class="[$style.submitBtn, 'btn-primary']" :disabled="loading">
           <span v-if="loading">{{ $t('common.saving') }}</span>
-          <span v-else>{{ $t('journal.form.analyze') }}</span>
+          <span v-else>{{ initialJournal ? $t('common.update') : $t('journal.form.analyze') }}</span>
         </button>
       </div>
     </form>

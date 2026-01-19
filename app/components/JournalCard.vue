@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon, PencilSquareIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps<{
   journal: {
@@ -35,8 +35,14 @@ const router = useRouter();
 const isRetrying = ref(false);
 const isDeleting = ref(false);
 
+const { data: settings } = useSystemSettings();
+
 const startDiscussion = () => {
   router.push({ path: '/chat/new', query: { contextId: props.journal.id } });
+};
+
+const startEdit = () => {
+  router.push(`/journals/${props.journal.id}/edit`);
 };
 
 const handleRetry = async () => {
@@ -87,6 +93,9 @@ const handleDelete = async () => {
       <div :class="$style.actions">
         <button :class="$style.actionBtn" @click="handleDelete" :disabled="isDeleting" title="削除">
           <TrashIcon :class="$style.actionIcon" />
+        </button>
+        <button v-if="settings?.allowJournalEditing" :class="$style.actionBtn" @click="startEdit" title="編集">
+          <PencilSquareIcon :class="$style.actionIcon" />
         </button>
         <button v-if="!hideDiscussion" :class="$style.actionBtn" @click="startDiscussion"
           :title="$t('journal.discuss')">

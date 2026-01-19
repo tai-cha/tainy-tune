@@ -1,4 +1,4 @@
-import ja from '~/i18n/locales/ja.json';
+import ja from '~/i18n/locales/ja';
 
 // Type for the distortion map structure
 type DistortionMap = Record<string, string>;
@@ -25,12 +25,12 @@ export const getValidDistortionKeys = (locale?: string): string[] => {
   if (locale && locale !== MASTER_LOCALE && LOCALES[locale]?.distortions) {
     return Object.keys(LOCALES[locale].distortions);
   }
-  
+
   // Fall back to master locale (ja)
   if (LOCALES[MASTER_LOCALE]?.distortions) {
     return Object.keys(LOCALES[MASTER_LOCALE].distortions);
   }
-  
+
   // If master locale doesn't exist, throw error
   throw new Error(`Critical configuration error: Master locale (${MASTER_LOCALE}) distortions not found`);
 };

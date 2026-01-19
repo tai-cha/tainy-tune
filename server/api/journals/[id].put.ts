@@ -4,6 +4,8 @@ import { journals, systemSettings } from '~/server/db/schema';
 import { db } from '~/server/db';
 import { auth } from '~/server/utils/auth';
 import { getEmbedding } from '~/server/utils/embedding';
+import { analyzeJournal, type JournalEntry } from '~/server/utils/ai';
+import { searchSimilarJournals } from '~/server/utils/retrieval';
 
 type JournalUpdatePayload = Partial<typeof journals.$inferInsert>;
 
@@ -69,6 +71,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Perform Update
   let newEmbedding: number[] | undefined;
+  let aiAnalysis: any;
 
   // Generate embedding first if content changed
   if (content !== existing.content) {
@@ -80,6 +83,28 @@ export default defineEventHandler(async (event) => {
         statusCode: 500,
         statusMessage: 'Failed to generate embedding for journal content.',
       });
+    }
+
+    // 2a. Re-Analyze if content changed
+    try {
+      // Retrieve Context (RAG) using the NEW embedding
+      // We exclude the current journal ID from context search to avoid self-reference (though embedding search uses cosine similarity so exact match might be top 1)
+      // searchSimilarJournals(userId, vector, limit, excludeId)
+      let contextJournals: JournalEntry[] = [];
+      try {
+        contextJournals = await searchSimilarJournals(session.user.id, newEmbedding!, 3, id) satisfies JournalEntry[];
+      } catch (e) {
+        console.warn('[RAG] Retrieval failed during update, proceeding without context:', e);
+      }
+
+      aiAnalysis = await analyzeJournal(content, contextJournals);
+
+    } catch (error) {
+      console.error('Failed to re-analyze journal:', error);
+      // We don't fail the whole update if analysis fails, but we might want to flag it?
+      // For now, let's log and proceed, keeping old analysis or setting isAnalysisFailed?
+      // Existing logic in post.ts doesn't explicitly handle analysis failure by fallback, it lets it throw or return default.
+      // analyzeJournal usually returns a structure even on failure (fallback).
     }
   }
 
@@ -94,6 +119,16 @@ export default defineEventHandler(async (event) => {
 
     if (newEmbedding) {
       updateData.embedding = newEmbedding;
+    }
+
+    if (aiAnalysis) {
+      updateData.tags = aiAnalysis.tags;
+      updateData.distortionTags = aiAnalysis.distortionTags;
+      updateData.advice = aiAnalysis.advice;
+      updateData.fact = aiAnalysis.fact;
+      updateData.emotion = aiAnalysis.emotion;
+      // We do NOT override moodScore here because `moodScore` in body comes from user input (slider)
+      // which takes precedence over AI.
     }
 
     const [updated] = await db

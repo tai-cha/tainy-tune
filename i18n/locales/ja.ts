@@ -9,6 +9,7 @@ export default {
     "user": "ユーザー",
     "save": "保存する",
     "saving": "保存中...",
+    "update": "更新する",
     "loading": "読み込み中...",
     "cancel": "キャンセル",
     "back": "戻る",
@@ -85,6 +86,10 @@ export default {
       "mood": "今の気分",
       "content": "今、何を考えていますか？",
       "analyze": "分析する"
+    },
+    "edit": {
+      "title": "日記を編集する",
+      "subtitle": "日記を編集しましょう",
     },
     "offline_saved": "オフラインで保存しました。分析はオンライン時に実行されます。",
     "saved_queued": "保存しました。通信状況が改善次第、同期します。",
