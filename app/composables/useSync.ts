@@ -47,6 +47,11 @@ export const useSync = () => {
             }
 
           } else if (task.action === 'update') {
+            if (!task.payload?.id) {
+              console.warn('Skipping update sync: missing payload.id', task);
+              await db.syncQueue.delete(task.id!);
+              continue;
+            }
             if (!canEdit) {
               console.warn('Skipping update sync: Server editing disabled', task);
               await db.syncQueue.delete(task.id!);
@@ -60,6 +65,11 @@ export const useSync = () => {
             });
             await db.journalEntries.update(task.payload.id, { synced: 1 });
           } else if (task.action === 'delete') {
+            if (!task.payload?.id) {
+              console.warn('Skipping delete sync: missing payload.id', task);
+              await db.syncQueue.delete(task.id!);
+              continue;
+            }
             await $fetch(`/api/journals/${task.payload.id}`, { method: 'DELETE' });
             // Also remove from local DB
             await db.journalEntries.delete(task.payload.id);
