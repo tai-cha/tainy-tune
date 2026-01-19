@@ -16,7 +16,8 @@
     "unit": {
       "minute": "分"
     },
-    "offline": "オフライン"
+    "offline": "オフライン",
+    "close": "閉じる"
   },
   "auth": {
     "logout": "ログアウト",

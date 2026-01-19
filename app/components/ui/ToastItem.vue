@@ -9,6 +9,8 @@ import {
 import type { Toast } from '@app/composables/useToast'
 import { computed } from 'vue'
 
+const { t } = useI18n()
+
 const props = defineProps<{
   toast: Toast
 }>()
@@ -41,7 +43,7 @@ const typeClass = computed(() => {
       <p :class="$style.description">{{ toast.description }}</p>
     </div>
 
-    <button type="button" :class="$style.closeParams" @click="emit('close', toast.id)">
+    <button type="button" :class="$style.closeParams" :aria-label="t('common.close')" @click="emit('close', toast.id)">
       <XMarkIcon class="h-4 w-4" />
     </button>
   </div>
