@@ -247,7 +247,9 @@ const selectedDayJournals = computed(() => {
           <button v-if="searchQuery" @click="searchQuery = ''" :class="$style.clearBtn" title="Clear search">✕</button>
         </div>
         <div v-if="searchQuery" :class="$style.searchStatus">
-          {{ $t('history.search.results', { count: journals?.length || 0 }) }}
+          {{ $t('history.search.results', {
+            count: viewMode === 'list' ? (allJournals?.length || 0) : (journals?.length
+              || 0) }) }}
         </div>
       </div>
     </header>
