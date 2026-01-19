@@ -8,6 +8,7 @@ const loading = ref(false);
 const result = ref<any>(null);
 
 const style = useCssModule();
+const { t } = useI18n();
 
 const moodColorClass = computed(() => {
   if (mood.value >= 8) return style.moodGood;
@@ -77,14 +78,14 @@ async function submitJournal() {
           payload: { ...entryData },
           createdAt: new Date().getTime()
         });
-        alert($t('journal.offline_updated') || 'Updated offline.');
+        alert(t('journal.offline_updated') || 'Updated offline.');
       } else {
         await db.syncQueue.add({
           action: 'create',
           payload: { ...entryData },
           createdAt: new Date().getTime()
         });
-        alert($t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
+        alert(t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
       }
 
       if (!isEdit) {
@@ -211,7 +212,7 @@ async function submitJournal() {
           payload: { ...entryData },
           createdAt: new Date().getTime()
         });
-        alert($t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
+        alert(t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
 
         if (!isEdit) {
           content.value = '';
@@ -221,7 +222,7 @@ async function submitJournal() {
     }
   } catch (error) {
     console.error('Failed to save journal:', error);
-    alert($t('common.error'));
+    alert(t('common.error'));
   } finally {
     loading.value = false;
   }
