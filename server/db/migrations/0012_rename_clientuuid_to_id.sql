@@ -2,6 +2,7 @@
  Manual Migration for UUID Refactoring
  Goal: Rename 'clientUuid' to 'id' to preserve data and switch to UUID primary key.
  */
+BEGIN;
 -- 1. Drop existing primary key constraint on 'id'
 ALTER TABLE "journals" DROP CONSTRAINT "journals_pkey";
 -- 2. Drop the original serial 'id' column
@@ -19,3 +20,4 @@ SET DEFAULT gen_random_uuid();
 -- 6. Drop the unique constraint on the former 'clientUuid' (now 'id') as PK implies uniqueness (optional but clean)
 -- Note: Constraint name might vary, check if it exists: "journals_clientUuid_unique"
 ALTER TABLE "journals" DROP CONSTRAINT IF EXISTS "journals_clientUuid_unique";
+COMMIT;
