@@ -194,7 +194,7 @@ const displayDate = computed(() => {
 // Helper to find journals for a specific day
 const getJournalsForDay = (day: Date) => {
   if (!journals.value) return [];
-  return journals.value.filter(j => j.created_at && isSameDay(new Date(j.created_at), day));
+  return journals.value.filter(j => j.createdAt && isSameDay(new Date(j.createdAt), day));
 };
 
 const getMoodColor = (mood: number) => {
