@@ -20,6 +20,7 @@ const hasMore = ref(true);
 const isLoading = ref(false);
 const sentinel = ref<HTMLElement | null>(null);
 const observer = ref<IntersectionObserver | null>(null);
+const latestListRequestId = ref(0);
 
 
 // Calendar Logic
@@ -85,8 +86,11 @@ watch([currentDate, viewMode, searchQuery], () => {
 
 // Infinite Scroll Logic
 const loadMoreJournals = async (reset = false) => {
-  if (isLoading.value) return;
+  if (isLoading.value && !reset) return;
   if (!reset && !hasMore.value) return;
+
+  latestListRequestId.value++;
+  const requestId = latestListRequestId.value;
 
   isLoading.value = true;
   if (reset) {
@@ -102,17 +106,21 @@ const loadMoreJournals = async (reset = false) => {
       search: searchQuery.value || undefined
     });
 
-    if (data && Array.isArray(data)) {
-      if (data.length < limit) {
-        hasMore.value = false;
+    if (requestId === latestListRequestId.value) {
+      if (data && Array.isArray(data)) {
+        if (data.length < limit) {
+          hasMore.value = false;
+        }
+        allJournals.value.push(...data);
+        page.value++;
       }
-      allJournals.value.push(...data);
-      page.value++;
     }
   } catch (e) {
     console.error('Failed to load journals', e);
   } finally {
-    isLoading.value = false;
+    if (requestId === latestListRequestId.value) {
+      isLoading.value = false;
+    }
   }
 };
 
