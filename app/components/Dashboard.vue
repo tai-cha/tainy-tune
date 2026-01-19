@@ -20,7 +20,6 @@ const greeting = hours < 12
     : t('common.greeting.evening');
 
 // Recent Logs (Fetch last 3)
-// Recent Logs (Fetch last 3)
 const { fetchJournals } = useJournalQuery();
 const recentJournals = ref<JournalEntry[]>([]);
 
