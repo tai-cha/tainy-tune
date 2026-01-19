@@ -95,30 +95,112 @@ async function submitJournal() {
       // Online: Try direct send (for immediate analysis result)
       // We still save locally first (done above).
       try {
-        const method = isEdit ? 'PUT' : 'POST';
-        const url = isEdit ? `/api/journals/${uuid}` : '/api/journal';
 
-        const response = await $fetch(url, {
-          method,
+        const response = await (isEdit ? $fetch(`/api/journals/${uuid}`, {
+          method: 'PUT',
           body: {
             id: uuid,
             content: content.value,
             moodScore: mood.value
           }
-        });
+        }) : $fetch('/api/journal', {
+          method: 'POST',
+          body: {
+            id: uuid,
+            content: content.value,
+            moodScore: mood.value
+          }
+        }));
+
+        if (response == null) {
+          throw new Error('Failed to save journal');
+        }
 
         // Success! Update local sync status and result
-        // We use the uuid we generated (which matches response.id ideally)
-        await db.journalEntries.update(uuid, { synced: 1 });
+        // Fetch existing local entry to merge server fields (analysis) while keeping local ID
+        const localEntry = await db.journalEntries.get(uuid);
 
-        result.value = response;
+        if (localEntry) {
+          const missingFields: string[] = [];
+          if (response.tags == null) missingFields.push('tags');
+          if (response.distortionTags == null) missingFields.push('distortionTags');
+          if (response.embedding == null) missingFields.push('embedding');
+          if (response.advice == null) missingFields.push('advice');
+          if (response.moodScore == null) missingFields.push('moodScore');
+          if (response.fact == null) missingFields.push('fact');
+          if (response.emotion == null) missingFields.push('emotion');
+
+          if (missingFields.length > 0) {
+            throw new Error(`Failed to save journal. Missing fields: ${missingFields.join(', ')}`);
+          }
+
+          // 上でガードしているが、TypeScriptの型推論は判別できないので明示的にフォールバックする
+          const mergedEntry = {
+            ...localEntry,
+            ...response,
+            moodScore: response.moodScore ?? localEntry.moodScore ?? 5,
+            tags: response.tags as string[],
+            distortionTags: response.distortionTags as string[],
+            advice: response.advice as string,
+            fact: response.fact as string,
+            emotion: response.emotion as string,
+            isAnalysisFailed: false,
+            id: uuid, // Ensure consistent ID
+            synced: 1,
+            // Ensure Dates are objects for Dexie/App consistency
+            createdAt: response.createdAt ? new Date(response.createdAt) : localEntry.createdAt,
+            updatedAt: response.updatedAt ? new Date(response.updatedAt) : new Date(),
+          };
+
+          await db.journalEntries.put(mergedEntry);
+
+          // Update result and UI to reflect merged state
+          result.value = mergedEntry;
+
+          if (isEdit) {
+            content.value = mergedEntry.content;
+            mood.value = mergedEntry.moodScore;
+            emit('update:success', mergedEntry);
+          }
+        } else {
+          // Fallback if local entry missing for some reason (rare)
+          // Validate required fields same as main path
+          const missingFields: string[] = [];
+          if (response.tags == null) missingFields.push('tags');
+          if (response.distortionTags == null) missingFields.push('distortionTags');
+          if (response.embedding == null) missingFields.push('embedding');
+          if (response.advice == null) missingFields.push('advice');
+          if (response.moodScore == null) missingFields.push('moodScore');
+          if (response.fact == null) missingFields.push('fact');
+          if (response.emotion == null) missingFields.push('emotion');
+
+          if (missingFields.length > 0) {
+            throw new Error(`Failed to save journal. Missing fields: ${missingFields.join(', ')}`);
+          }
+
+          // Save server response to local DB to maintain consistency
+          const fallbackEntry = {
+            ...response,
+            moodScore: response.moodScore as number,
+            tags: response.tags as string[],
+            distortionTags: response.distortionTags as string[],
+            advice: response.advice as string,
+            fact: response.fact as string,
+            emotion: response.emotion as string,
+            id: uuid,
+            synced: 1,
+            isAnalysisFailed: false,
+            createdAt: response.createdAt ? new Date(response.createdAt) : new Date(),
+            updatedAt: response.updatedAt ? new Date(response.updatedAt) : new Date(),
+          };
+          await db.journalEntries.put(fallbackEntry);
+          result.value = fallbackEntry;
+          if (isEdit) emit('update:success', fallbackEntry);
+        }
 
         if (!isEdit) {
           content.value = '';
           mood.value = 5;
-        } else {
-          // If editing, maybe we want to emit success or just show result
-          emit('update:success', response);
         }
 
       } catch (err) {
@@ -152,7 +234,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-        }}</span></label>
+            }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
