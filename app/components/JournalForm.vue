@@ -147,7 +147,7 @@ async function submitJournal() {
             advice: response.advice as string,
             fact: response.fact as string,
             emotion: response.emotion as string,
-            isAnalysisFailed: false,
+            isAnalysisFailed: response.isAnalysisFailed ?? false,
             id: uuid, // Ensure consistent ID
             synced: 1,
             // Ensure Dates are objects for Dexie/App consistency
@@ -237,7 +237,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-            }}</span></label>
+        }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>
