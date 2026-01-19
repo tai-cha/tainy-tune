@@ -143,6 +143,13 @@ export default defineEventHandler(async (event) => {
       .where(and(eq(journals.id, id), eq(journals.userId, session.user.id)))
       .returning();
 
+    if (!updated) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Journal entry not found or permission denied.',
+      });
+    }
+
     return updated;
 
   } catch (error: unknown) {
