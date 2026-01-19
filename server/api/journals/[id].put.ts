@@ -153,6 +153,11 @@ export default defineEventHandler(async (event) => {
     return updated;
 
   } catch (error: unknown) {
+    // If it's a known error (e.g. 404 from above), rethrow it
+    if (typeof error === 'object' && error != null && 'statusCode' in error) {
+      throw error;
+    }
+
     console.error('Failed to update journal:', error);
     throw createError({
       statusCode: 500,
