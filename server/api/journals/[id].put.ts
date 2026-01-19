@@ -72,6 +72,7 @@ export default defineEventHandler(async (event) => {
   // 2. Perform Update
   let newEmbedding: number[] | undefined;
   let aiAnalysis: any;
+  let analysisFailed = false;
 
   // Generate embedding first if content changed
   if (content !== existing.content) {
@@ -101,6 +102,7 @@ export default defineEventHandler(async (event) => {
 
     } catch (error) {
       console.error('Failed to re-analyze journal:', error);
+      analysisFailed = true;
       // We don't fail the whole update if analysis fails, but we might want to flag it?
       // For now, let's log and proceed, keeping old analysis or setting isAnalysisFailed?
       // Existing logic in post.ts doesn't explicitly handle analysis failure by fallback, it lets it throw or return default.
@@ -113,7 +115,7 @@ export default defineEventHandler(async (event) => {
     const updateData: JournalUpdatePayload = {
       content,
       moodScore,
-      isAnalysisFailed: false, // Reset flag on manual edit
+      isAnalysisFailed: analysisFailed, // Set based on analysis outcome
       updatedAt: new Date(),
     };
 
