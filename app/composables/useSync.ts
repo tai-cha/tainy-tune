@@ -107,6 +107,7 @@ export const useSync = () => {
     isSyncing.value = true;
 
     try {
+      const startTime = new Date().toISOString();
       const query: JournalPullQuery = {};
       if (!forceFull && lastSynced.value) {
         query.updatedAfter = lastSynced.value;
@@ -149,7 +150,7 @@ export const useSync = () => {
         }
       }
 
-      lastSynced.value = new Date().toISOString();
+      lastSynced.value = startTime;
 
     } catch (e) {
       console.error('Pull sync failed', e);
