@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, useCssModule } from 'vue';
+import { ref, computed, useCssModule, watch } from 'vue';
 import { db } from '~/utils/local-db';
 
 const content = ref('');
@@ -28,11 +28,13 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:success']);
 
-// Initialize with props if available
-if (props.initialJournal) {
-  content.value = props.initialJournal.content;
-  mood.value = props.initialJournal.moodScore;
-}
+// Reactively update form when props change (e.g. async load)
+watch(() => props.initialJournal, (newVal) => {
+  if (newVal) {
+    content.value = newVal.content;
+    mood.value = newVal.moodScore;
+  }
+}, { immediate: true });
 
 
 const { online, getUUID } = useSync();
