@@ -60,7 +60,8 @@ export default defineEventHandler(async (event) => {
     // If different content/mood and editing disabled -> 403
     // Note: We only check user-provided fields (content, moodScore) to determine
     // if this is an actual edit attempt vs. an idempotent retry of the same request.
-    // Other fields (tags, advice, etc.) are generated server-side and not part of the request.
+    // Server-generated fields (tags, distortionTags, advice, fact, emotion, embedding)
+    // are not part of the request and thus not checked for idempotency.
     if (existing.content !== content || existing.moodScore !== moodScore) {
       throw createError({
         statusCode: 403,
