@@ -1,0 +1,289 @@
+export default {
+  "common": {
+    "greeting": {
+      "format": "{greeting}、{name}さん",
+      "morning": "おはようございます",
+      "afternoon": "こんにちは",
+      "evening": "こんばんは"
+    },
+    "user": "ユーザー",
+    "save": "保存する",
+    "saving": "保存中...",
+    "update": "更新する",
+    "loading": "読み込み中...",
+    "cancel": "キャンセル",
+    "back": "戻る",
+    "required": "必須",
+    "unit": {
+      "minute": "分"
+    },
+    "offline": "オフライン"
+  },
+  "auth": {
+    "logout": "ログアウト",
+    "logoutConfirm": "ログアウトしてもよろしいですか？",
+    "registration": {
+      "status": {
+        "enabled_desc": "現在、誰でも新規アカウントを作成できます。",
+        "disabled_desc": "新規アカウント作成は管理者により停止されています。"
+      }
+    }
+  },
+  "nav": {
+    "dashboard": "ホーム",
+    "journal": "日記を書く",
+    "chat": "AIと話す",
+    "history": "振り返る",
+    "insights": "分析",
+    "admin": "管理",
+    "profile": "設定"
+  },
+  "dashboard": {
+    "subtitle": "今の気分はどうですか？",
+    "quickActions": {
+      "write": {
+        "title": "日記を書く",
+        "desc": "思考を整理する"
+      },
+      "chat": {
+        "title": "AIパートナー",
+        "desc": "対話で深掘りする",
+        "offline": "AIパートナーはオフラインです。"
+      }
+    },
+    "recent": {
+      "title": "最近の活動",
+      "viewAll": "すべて見る",
+      "empty": "まだ履歴がありません。最初の日記を書いてみましょう！"
+    },
+    "selfCare": {
+      "title": "セルフケア",
+      "checkin": {
+        "title": "ワンタップ・チェックイン",
+        "labels": {
+          "veryBad": "最悪",
+          "bad": "悪い",
+          "neutral": "普通",
+          "good": "良い",
+          "excellent": "最高"
+        },
+        "recorded": "記録しました！",
+        "updated": "更新しました！",
+        "error": "保存エラー"
+      },
+      "timer": {
+        "title": "マインドフルネス・タイマー",
+        "start": "スタート",
+        "stop": "ストップ",
+        "finished": "終了しました！記録を保存しました。"
+      }
+    }
+  },
+  "journal": {
+    "title": "新しい日記",
+    "subtitle": "今の気持ちや出来事を書き出しましょう",
+    "form": {
+      "mood": "今の気分",
+      "content": "今、何を考えていますか？",
+      "analyze": "分析する"
+    },
+    "edit": {
+      "title": "日記を編集する",
+      "subtitle": "日記を編集しましょう",
+    },
+    "offline_saved": "オフラインで保存しました。分析はオンライン時に実行されます。",
+    "saved_queued": "保存しました。通信状況が改善次第、同期します。",
+    "result": {
+      "title": "分析結果",
+      "mood": "気分スコア",
+      "tags": "タグ",
+      "distortions": "認知の歪み",
+      "advice": "AIアドバイス",
+      "backToHome": "ホームに戻る"
+    },
+    "discuss": "この記録について話す"
+  },
+  "history": {
+    "title": "履歴",
+    "tabs": {
+      "list": "リスト",
+      "week": "週間",
+      "month": "月間"
+    },
+    "search": {
+      "placeholder": "ログを検索...",
+      "results": "{count} 件見つかりました"
+    },
+    "empty": {
+      "week": "この週のログはありません。",
+      "day": "この日のログはありません。",
+      "general": "ログが見つかりません。"
+    },
+    "backToMonth": "月表示に戻る"
+  },
+  "chat": {
+    "title": "AIパートナー",
+    "subtitle": "いつでも話しかけてください",
+    "placeholder": "メッセージを入力...",
+    "send": "送信",
+    "header": "AIとの対話",
+    "role": {
+      "user": "あなた",
+      "ai": "AI"
+    },
+    "thinking": "考え中...",
+    "error": "エラーが発生しました。",
+    "recentThreads": "最近のチャット",
+    "noThreads": "履歴がありません",
+    "referencing": "参照中の記録",
+    "newChat": "新しいチャット",
+    "discussTitle": "日記について話す",
+    "confirmDelete": "このチャットを削除してもよろしいですか？",
+    "deleteError": "削除に失敗しました",
+    "deleteThread": "チャットを削除",
+    "pin": "固定",
+    "unpin": "固定解除",
+    "rename": "名前を変更",
+    "renamePrompt": "新しい名前を入力してください",
+    "delete": "削除",
+    "contextLabel": "参照中の記録",
+    "offline_message": "AIパートナーはオフラインです。"
+  },
+  "journalCard": {
+    "mood": "気分"
+  },
+  "distortions": {
+    "all_or_nothing": "白黒思考",
+    "overgeneralization": "過度の一般化",
+    "mental_filter": "心のフィルター",
+    "disqualifying_positive": "マイナス化思考",
+    "jumping_conclusions": "結論の飛躍",
+    "mind_reading": "心の読みすぎ",
+    "fortune_telling": "悲観的な将来予測",
+    "magnification_minimization": "拡大解釈・過小評価",
+    "emotional_reasoning": "感情的決めつけ",
+    "should_statements": "すべき思考",
+    "labeling": "レッテル貼り",
+    "personalization": "自己関連付け"
+  },
+  "insights": {
+    "title": "インサイト",
+    "moodChart": "気分の推移 (過去30日)",
+    "distortionChart": "認知の歪み傾向",
+    "noData": "データがありません。日記を書くとここに分析結果が表示されます。"
+  },
+  "setup": {
+    "title": "システム初期化",
+    "subtitle": "管理者アカウントを安全に設定してください。",
+    "form": {
+      "initToken": {
+        "label": "初期化トークン",
+        "placeholder": "INIT_ADMIN_PASSWORD の値"
+      },
+      "adminProfile": "管理者アカウント",
+      "displayName": "表示名",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "passwordConfirm": "パスワード（確認）",
+      "submit": "セットアップを完了",
+      "submitting": "初期化中..."
+    },
+    "footer": "Tainy Tune • Private AI Life Log"
+  },
+  "signup": {
+    "title": "アカウント作成",
+    "subtitle": "Tainy Tune で新しい旅を始めましょう。",
+    "form": {
+      "name": "名前",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "passwordConfirm": "パスワード（確認）",
+      "submit": "登録する",
+      "submitting": "アカウント作成中..."
+    },
+    "loginLink": {
+      "text": "すでにアカウントをお持ちですか？",
+      "link": "ログイン"
+    },
+    "closed": "現在、新規登録は受け付けていません。"
+  },
+  "login": {
+    "title": "Tainy Tune",
+    "subtitle": "おかえりなさい",
+    "form": {
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "submit": "ログイン",
+      "submitting": "ログイン中..."
+    },
+    "error": {
+      "failed": "ログインに失敗しました。メールアドレスかパスワードを確認してください。",
+      "unexpected": "予期せぬエラーが発生しました。"
+    },
+    "signupLink": {
+      "text": "アカウントをお持ちでないですか？",
+      "link": "新規登録"
+    }
+  },
+  "admin": {
+    "title": "管理ダッシュボード",
+    "settings": {
+      "title": "システム設定",
+      "registration": "新規ユーザー登録",
+      "journalEditing": {
+        "title": "ジャーナル編集設定",
+        "enabled_desc": "ユーザーは自分の日記を編集できます（サーバー設定により許可）。",
+        "disabled_desc": "日記の編集は無効化されています。追記のみ可能です。"
+      },
+      "enabled": "有効",
+      "disabled": "無効",
+      "turnstile": {
+        "title": "Turnstile (Captcha)",
+        "siteKey": "Site Key",
+        "secretKey": "Secret Key",
+        "saved": "Turnstile設定を保存しました。",
+        "warning": "※設定を反映するにはサーバーの再起動が必要です。"
+      }
+    },
+    "users": {
+      "title": "ユーザー管理",
+      "table": {
+        "name": "名前",
+        "email": "メールアドレス",
+        "role": "権限",
+        "joined": "登録日",
+        "actions": "操作"
+      },
+      "actions": {
+        "resetPassword": "パスワードリセット",
+        "confirmRole": "このユーザーの権限を {role} に変更してもよろしいですか？",
+        "promote": "権限の更新に失敗しました。",
+        "resetSuccess": "パスワードをリセットしました。",
+        "resetError": "パスワードのリセットに失敗しました: {message}",
+        "newPasswordPrompt": "新しいパスワードを入力してください:"
+      }
+    }
+  },
+  "profile": {
+    "title": "プロフィール設定",
+    "general": {
+      "title": "基本情報",
+      "name": "名前",
+      "email": "メールアドレス",
+      "emailHint": "メールアドレスの変更は現在サポートされていません。",
+      "save": "保存する",
+      "success": "プロフィールを更新しました。",
+      "error": "プロフィールの更新に失敗しました。"
+    },
+    "security": {
+      "title": "パスワード変更",
+      "current": "現在のパスワード",
+      "new": "新しいパスワード",
+      "confirm": "新しいパスワード（確認）",
+      "update": "パスワードを更新する",
+      "mismatch": "新しいパスワードが一致しません。",
+      "success": "パスワードを変更しました。",
+      "error": "パスワードの変更に失敗しました。"
+    }
+  }
+} as const;

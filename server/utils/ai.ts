@@ -10,29 +10,35 @@ const model = genAI.getGenerativeModel({
     responseSchema: {
       type: SchemaType.OBJECT,
       properties: {
-        mood_score: { type: SchemaType.INTEGER },
+        moodScore: { type: SchemaType.INTEGER },
         tags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-        distortion_tags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+        distortionTags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         advice: { type: SchemaType.STRING },
         fact: { type: SchemaType.STRING },
         emotion: { type: SchemaType.STRING },
       },
-      required: ['mood_score', 'tags', 'distortion_tags', 'advice', 'fact', 'emotion'],
+      required: ['moodScore', 'tags', 'distortionTags', 'advice', 'fact', 'emotion'],
     },
   },
 });
 
 export type AnalysisResult = z.infer<typeof AnalysisSchema>;
 
-export async function analyzeJournal(content: string, contextJournals: any[] = []): Promise<AnalysisResult & { is_analysis_failed: boolean }> {
+export type JournalEntry = {
+  createdAt: Date | null;
+  content: string;
+  advice: string | null;
+};
+
+export async function analyzeJournal(content: string, contextJournals: JournalEntry[] = []): Promise<AnalysisResult & { isAnalysisFailed: boolean }> {
   // Format context for prompt
   const contextString = contextJournals.length > 0
     ? `
     ### Relevant Past Journals (Context):
     ${contextJournals.map((j, i) => `
-    [${i + 1}] Date: ${j.created_at}
+    [${i + 1}] Date: ${j.createdAt ? j.createdAt.toISOString() : 'Unknown'}
     Content: ${j.content}
-    Advice Given: ${j.advice}
+    Advice Given: ${j.advice || 'None'}
     `).join('\n')}
     
     Instruction: Consider these past entries. If the user is repeating a pattern or has made progress, mention it in the advice.
@@ -68,26 +74,26 @@ export async function analyzeJournal(content: string, contextJournals: any[] = [
     const text = result.response.text();
     const json = JSON.parse(text);
     const data = AnalysisSchema.parse(json);
-    return { ...data, is_analysis_failed: false };
+    return { ...data, isAnalysisFailed: false };
   } catch (error) {
     console.error('AI Analysis failed:', error);
     // Return safe fallback
     return {
-      mood_score: 5,
+      moodScore: 5,
       tags: [],
-      distortion_tags: [],
+      distortionTags: [],
       advice: '分析に失敗しました。',
       fact: '',
       emotion: '',
-      is_analysis_failed: true,
+      isAnalysisFailed: true,
     };
   }
 }
 
 export const AnalysisSchema = z.object({
-  mood_score: z.number().int().min(1).max(10).optional(),
+  moodScore: z.number().int().min(1).max(10),
   tags: z.array(z.string()),
-  distortion_tags: z.array(z.enum([
+  distortionTags: z.array(z.enum([
     'all_or_nothing',
     'overgeneralization',
     'mental_filter',

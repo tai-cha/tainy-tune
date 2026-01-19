@@ -1,5 +1,5 @@
 import { journals } from '@server/db/schema';
-import { analyzeJournal } from '@server/utils/ai';
+import { analyzeJournal, type JournalEntry } from '@server/utils/ai';
 import { getEmbedding } from '@server/utils/embedding';
 import { searchSimilarJournals } from '@server/utils/retrieval';
 
@@ -17,11 +17,10 @@ export default defineEventHandler(async (event) => {
   }
   const userId = session.user.id;
 
-  const idStr = getRouterParam(event, 'id');
-  if (!idStr || isNaN(Number(idStr))) {
+  const id = getRouterParam(event, 'id');
+  if (!id) {
     throw createError({ statusCode: 400, message: 'Invalid ID' });
   }
-  const id = Number(idStr);
 
   try {
     // 1. Fetch Journal
@@ -48,7 +47,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. Retrieve Context (RAG)
-    let contextJournals: any[] = [];
+    let contextJournals: JournalEntry[] = [];
     try {
       contextJournals = await searchSimilarJournals(userId, embedding, 3, id);
       console.log(`[RAG] Found ${contextJournals.length} similar journals for context (Re-analysis).`);
@@ -59,7 +58,7 @@ export default defineEventHandler(async (event) => {
     // 4. Re-analyze with Context
     const aiAnalysis = await analyzeJournal(journal.content, contextJournals);
 
-    if (aiAnalysis.is_analysis_failed) {
+    if (aiAnalysis.isAnalysisFailed) {
       throw createError({
         statusCode: 429,
         message: 'AI analysis failed again (Rate Limit). Please try later.',
@@ -68,13 +67,13 @@ export default defineEventHandler(async (event) => {
 
     // 5. Update DB
     const updateData: any = {
-      mood_score: aiAnalysis.mood_score,
+      moodScore: aiAnalysis.moodScore,
       tags: aiAnalysis.tags,
-      distortion_tags: aiAnalysis.distortion_tags,
+      distortionTags: aiAnalysis.distortionTags,
       advice: aiAnalysis.advice,
       fact: aiAnalysis.fact,
       emotion: aiAnalysis.emotion,
-      is_analysis_failed: aiAnalysis.is_analysis_failed,
+      isAnalysisFailed: aiAnalysis.isAnalysisFailed,
     };
 
     // If we generated embedding on the fly, save it too

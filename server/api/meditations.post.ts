@@ -11,18 +11,18 @@ export default defineEventHandler(async (event) => {
   }
   const userId = session.user.id;
   const body = await readBody(event);
-  const { duration_seconds } = body;
+  const { durationSeconds } = body;
 
-  if (typeof duration_seconds !== 'number') {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid duration_seconds' });
+  if (typeof durationSeconds !== 'number') {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid durationSeconds' });
   }
 
   // Pure Insert logic
   const inserted = await db.insert(meditations)
     .values({
       userId,
-      duration_seconds,
-      created_at: new Date(),
+      durationSeconds,
+      createdAt: new Date(),
     })
     .returning();
 

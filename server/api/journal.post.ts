@@ -1,11 +1,12 @@
 import { journals } from '@server/db/schema';
-import { analyzeJournal } from '@server/utils/ai';
+import { analyzeJournal, type JournalEntry } from '@server/utils/ai';
 import { getEmbedding } from '@server/utils/embedding';
 import { searchSimilarJournals } from '@server/utils/retrieval';
 
 
 // Initialize Drizzle client
 import { db } from '@server/db';
+import { eq } from 'drizzle-orm';
 
 
 import { auth } from '~/server/utils/auth';
@@ -18,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const userId = session.user.id;
 
   const body = await readBody(event);
-  const { content, mood } = body;
+  const { content, moodScore, id } = body;
 
   if (!content || typeof content !== 'string') {
     throw createError({
@@ -27,16 +28,28 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Idempotency Check
+  if (id) {
+    const existing = await db.select().from(journals).where(eq(journals.id, id)).limit(1);
+    if (existing.length > 0) {
+      if (existing[0]?.userId !== userId) {
+        console.error(`[Idempotency] UUID collision or hacking attempt for ${id}`);
+        throw createError({ statusCode: 409, statusMessage: "UUID Conflict" });
+      }
+      console.log(`[Idempotency] Skipping duplicate creation for UUID ${id}`);
+      return existing[0];
+    }
+  }
+
   try {
     // 1. Generate Embedding first (Sequential execution needed for RAG)
     const embedding = await getEmbedding(content);
 
     // 2. Retrieve Context (RAG)
     // Fetch top 3 similar journals to provide context
-    // No excludeId needed for new entry (DB doesn't have it yet)
-    let contextJournals: any[] = [];
+    let contextJournals: JournalEntry[] = [];
     try {
-      contextJournals = await searchSimilarJournals(userId, embedding, 3);
+      contextJournals = await searchSimilarJournals(userId, embedding, 3, id) satisfies JournalEntry[];
       console.log(`[RAG] Found ${contextJournals.length} similar journals for context.`);
     } catch (e) {
       console.warn('[RAG] Retrieval failed, proceeding without context:', e);
@@ -46,22 +59,23 @@ export default defineEventHandler(async (event) => {
     const aiAnalysis = await analyzeJournal(content, contextJournals);
 
     // 4. Prepare Data (User input overrides AI mood if provided)
-    const finalMoodScore = typeof mood === 'number' ? mood : aiAnalysis.mood_score;
+    const finalMoodScore = typeof moodScore === 'number' ? moodScore : aiAnalysis.moodScore;
 
     // 5. Save to DB
     const [inserted] = await db
       .insert(journals)
       .values({
+        id: id || undefined, // Use provided UUID or let DB generate (though client should provide it)
         userId,
         content,
         embedding,
-        mood_score: finalMoodScore,
+        moodScore: finalMoodScore,
         tags: aiAnalysis.tags,
-        distortion_tags: aiAnalysis.distortion_tags,
+        distortionTags: aiAnalysis.distortionTags,
         advice: aiAnalysis.advice,
         fact: aiAnalysis.fact,
         emotion: aiAnalysis.emotion,
-        is_analysis_failed: aiAnalysis.is_analysis_failed,
+        isAnalysisFailed: aiAnalysis.isAnalysisFailed,
       })
       .returning();
 

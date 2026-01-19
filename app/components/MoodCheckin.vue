@@ -20,7 +20,7 @@ async function submitCheckin(score: number) {
   try {
     const res = await $fetch<{ status: string }>('/api/checkins', {
       method: 'POST',
-      body: { mood_score: score },
+      body: { moodScore: score },
     });
 
     // UI Feedback based on status

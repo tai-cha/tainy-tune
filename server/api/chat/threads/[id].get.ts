@@ -33,16 +33,16 @@ export default defineEventHandler(async (event) => {
     const threadMessages = await db
       .select()
       .from(messages)
-      .where(eq(messages.thread_id, threadId))
-      .orderBy(asc(messages.created_at));
+      .where(eq(messages.threadId, threadId))
+      .orderBy(messages.createdAt);
 
     // Fetch context journals if any
     let contextJournals: any[] = [];
-    if (thread.context_ids && thread.context_ids.length > 0) {
+    if (thread.contextIds && thread.contextIds.length > 0) {
       contextJournals = await db
         .select()
         .from(journals)
-        .where(inArray(journals.id, thread.context_ids));
+        .where(inArray(journals.id, thread.contextIds as string[]));
     }
 
     return {

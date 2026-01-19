@@ -2,7 +2,7 @@ import { cosineDistance, desc, gt, sql, ne, and, eq } from 'drizzle-orm';
 import { journals } from '@server/db/schema';
 import { db } from '@server/db';
 
-export const searchSimilarJournals = async (userId: string, queryEmbedding: number[], limit = 5, excludeId?: number) => {
+export const searchSimilarJournals = async (userId: string, queryEmbedding: number[], limit = 5, excludeId?: string) => {
   const similarity = sql<number>`1 - (${cosineDistance(journals.embedding, queryEmbedding)})`;
 
   const whereClause = excludeId
@@ -13,7 +13,7 @@ export const searchSimilarJournals = async (userId: string, queryEmbedding: numb
     .select({
       id: journals.id,
       content: journals.content,
-      created_at: journals.created_at,
+      createdAt: journals.createdAt,
       advice: journals.advice,
       similarity,
     })

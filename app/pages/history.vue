@@ -20,6 +20,7 @@ const hasMore = ref(true);
 const isLoading = ref(false);
 const sentinel = ref<HTMLElement | null>(null);
 const observer = ref<IntersectionObserver | null>(null);
+const latestListRequestId = ref(0);
 
 
 // Calendar Logic
@@ -38,43 +39,58 @@ const currentWeekDays = computed(() => {
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+const { fetchJournals } = useJournalQuery();
+
 // Data Fetching
-const { data: journals, refresh } = await useFetch('/api/journals', {
-  query: computed(() => {
-    // Determine date range based on view mode
-    if (viewMode.value === 'week') {
-      return {
-        startDate: startOfWeek(currentDate.value).toISOString(),
-        endDate: endOfWeek(currentDate.value).toISOString(),
-        search: searchQuery.value || undefined,
-      };
+const journals = ref<any[]>([]);
+const latestRequestId = ref(0);
+
+const fetchCalendarData = async () => {
+  latestRequestId.value++;
+  const requestId = latestRequestId.value;
+
+  const query: any = {};
+  if (viewMode.value === 'week') {
+    query.startDate = startOfWeek(currentDate.value);
+    query.endDate = endOfWeek(currentDate.value);
+    query.search = searchQuery.value || undefined;
+  } else if (viewMode.value === 'list') {
+    journals.value = [];
+    return;
+  } else {
+    // Month / Day (Day view logic uses month data usually, or specific fetch)
+    // Original: Default to month
+    query.startDate = startOfMonth(currentDate.value);
+    query.endDate = endOfMonth(currentDate.value);
+    query.search = searchQuery.value || undefined;
+  }
+
+  try {
+    const data = await fetchJournals(query) || [];
+    if (requestId === latestRequestId.value) {
+      journals.value = data;
     }
-    // Default to month for calendar (excluding list view which has its own logic)
-    // We still return a valid query for list view to satisfy useFetch, but we might ignore its result in the UI for list view
-    // Or better, we can pause useFetch for list view if we want, but let's just let it run for month view cache basically.
-    // However, if we are in list view, we don't want to limit by date.
-    if (viewMode.value === 'list') {
-      return {
-        // Provide a dummy query or just typical month query so switching back to month view is fast?
-        // Actually, if we are in list view, we rely on loadMoreJournals.
-        // Let's just keep this as month query so it acts as "Calendar Data".
-        startDate: startOfMonth(currentDate.value).toISOString(),
-        endDate: endOfMonth(currentDate.value).toISOString(),
-        search: searchQuery.value || undefined,
-      };
+  } catch (e) {
+    console.error('Failed to fetch calendar data', e);
+    if (requestId === latestRequestId.value) {
+      journals.value = [];
     }
-    return {
-      startDate: startOfMonth(currentDate.value).toISOString(),
-      endDate: endOfMonth(currentDate.value).toISOString(),
-      search: searchQuery.value || undefined,
-    };
-  }),
-});
+  }
+};
+
+// Initial Fetch & Watchers
+watch([currentDate, viewMode, searchQuery], () => {
+  fetchCalendarData();
+}, { immediate: true });
+
 
 // Infinite Scroll Logic
 const loadMoreJournals = async (reset = false) => {
-  if (isLoading.value) return;
+  if (isLoading.value && !reset) return;
   if (!reset && !hasMore.value) return;
+
+  latestListRequestId.value++;
+  const requestId = latestListRequestId.value;
 
   isLoading.value = true;
   if (reset) {
@@ -84,25 +100,27 @@ const loadMoreJournals = async (reset = false) => {
   }
 
   try {
-    const data = await $fetch('/api/journals', {
-      query: {
-        offset: page.value * limit,
-        limit: limit,
-        search: searchQuery.value || undefined,
-      }
+    const data = await fetchJournals({
+      offset: page.value * limit,
+      limit: limit,
+      search: searchQuery.value || undefined
     });
 
-    if (data && Array.isArray(data)) {
-      if (data.length < limit) {
-        hasMore.value = false;
+    if (requestId === latestListRequestId.value) {
+      if (data && Array.isArray(data)) {
+        if (data.length < limit) {
+          hasMore.value = false;
+        }
+        allJournals.value.push(...data);
+        page.value++;
       }
-      allJournals.value.push(...data);
-      page.value++;
     }
   } catch (e) {
     console.error('Failed to load journals', e);
   } finally {
-    isLoading.value = false;
+    if (requestId === latestListRequestId.value) {
+      isLoading.value = false;
+    }
   }
 };
 
@@ -189,7 +207,7 @@ const displayDate = computed(() => {
 // Helper to find journals for a specific day
 const getJournalsForDay = (day: Date) => {
   if (!journals.value) return [];
-  return journals.value.filter(j => j.created_at && isSameDay(new Date(j.created_at), day));
+  return journals.value.filter(j => j.createdAt && isSameDay(new Date(j.createdAt), day));
 };
 
 const getMoodColor = (mood: number) => {
@@ -201,7 +219,7 @@ const getMoodColor = (mood: number) => {
 const getAvgMood = (day: Date) => {
   const logs = getJournalsForDay(day);
   if (!logs.length) return 0;
-  const sum = logs.reduce((acc, curr) => acc + (curr.mood_score || 0), 0);
+  const sum = logs.reduce((acc, curr) => acc + (curr.moodScore || 0), 0);
   return sum / logs.length;
 };
 
@@ -246,7 +264,10 @@ const selectedDayJournals = computed(() => {
           <button v-if="searchQuery" @click="searchQuery = ''" :class="$style.clearBtn" title="Clear search">✕</button>
         </div>
         <div v-if="searchQuery" :class="$style.searchStatus">
-          {{ $t('history.search.results', { count: journals?.length || 0 }) }}
+          {{ $t('history.search.results', {
+            count: viewMode === 'list' ? (allJournals?.length || 0) : (journals?.length
+              || 0)
+          }) }}
         </div>
       </div>
     </header>
@@ -263,7 +284,7 @@ const selectedDayJournals = computed(() => {
 
           <div :class="$style.dots">
             <div v-for="j in getJournalsForDay(day)" :key="j.id"
-              :class="[$style.dot, j.mood_score && getMoodColor(j.mood_score)]" :title="j.content"></div>
+              :class="[$style.dot, j.moodScore && getMoodColor(j.moodScore)]" :title="j.content"></div>
           </div>
         </div>
       </div>

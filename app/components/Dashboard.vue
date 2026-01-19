@@ -3,11 +3,14 @@ import { PencilSquareIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/out
 
 import { useSession } from '~/app/utils/auth-client';
 import { computed } from 'vue';
+import { useOnline } from '@vueuse/core';
+import type { JournalEntry } from '~/utils/local-db';
 
 // User Greeting
 const { t } = useI18n();
 const session = useSession();
 const user = computed(() => session.value?.data?.user);
+const isOnline = useOnline();
 
 const hours = new Date().getHours();
 const greeting = hours < 12
@@ -17,9 +20,12 @@ const greeting = hours < 12
     : t('common.greeting.evening');
 
 // Recent Logs (Fetch last 3)
-const { data: recentJournals } = useFetch('/api/journals', {
-  query: { limit: 3 },
-  lazy: true
+const { fetchJournals } = useJournalQuery();
+const recentJournals = ref<JournalEntry[]>([]);
+
+// Fetch on mount (client-side) to ensure we check offline/online status correctly via composable
+onMounted(async () => {
+  recentJournals.value = await fetchJournals({ limit: 3 }) || [];
 });
 </script>
 
@@ -46,15 +52,27 @@ const { data: recentJournals } = useFetch('/api/journals', {
         </div>
       </NuxtLink>
 
-      <NuxtLink to="/chat" :class="[$style.actionCard, 'card', 'card-hover']">
-        <div :class="[$style.actionIconBg, $style.chatBg]">
-          <ChatBubbleLeftRightIcon :class="$style.actionIcon" />
-        </div>
-        <div :class="$style.actionText">
-          <h3>{{ $t('dashboard.quickActions.chat.title') }}</h3>
-          <p>{{ $t('dashboard.quickActions.chat.desc') }}</p>
-        </div>
-      </NuxtLink>
+      <ClientOnly>
+        <button v-if="!isOnline" :class="[$style.actionCard, 'card', $style.disabled]">
+          <div :class="[$style.actionIconBg, $style.chatBgDisabled]">
+            <ChatBubbleLeftRightIcon :class="$style.actionIcon" />
+          </div>
+          <div :class="$style.actionText">
+            <h3>{{ $t('dashboard.quickActions.chat.title') }} ({{ $t('common.offline') }})</h3>
+            <p>{{ $t('dashboard.quickActions.chat.offline') || 'Unavailable offline' }}</p>
+          </div>
+        </button>
+
+        <NuxtLink v-else to="/chat" :class="[$style.actionCard, 'card', 'card-hover']">
+          <div :class="[$style.actionIconBg, $style.chatBg]">
+            <ChatBubbleLeftRightIcon :class="$style.actionIcon" />
+          </div>
+          <div :class="$style.actionText">
+            <h3>{{ $t('dashboard.quickActions.chat.title') }}</h3>
+            <p>{{ $t('dashboard.quickActions.chat.desc') }}</p>
+          </div>
+        </NuxtLink>
+      </ClientOnly>
     </div>
 
     <!-- Self Care Tools -->
@@ -210,5 +228,19 @@ const { data: recentJournals } = useFetch('/api/journals', {
   background: #f7fafc;
   border-radius: 12px;
   border: 1px dashed #cbd5e0;
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border: none;
+  background: white;
+  text-align: left;
+  width: 100%;
+}
+
+.chatBgDisabled {
+  background: #cbd5e0;
+  color: white;
 }
 </style>

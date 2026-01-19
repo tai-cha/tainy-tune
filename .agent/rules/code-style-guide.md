@@ -18,3 +18,6 @@ trigger: always_on
 
 ## Stylingについて
 `app/assets/css/main.css`のほか、`app/components`配下のコンポーネントの実装も見て、コンポーネント間でスタイルの調和がとれるようにすること
+
+## TypeScriptについて
+このプロジェクトではTypeScriptを利用しています。anyという型指定は**絶対に検討すべきではない**です。型情報を参照し、適切にコーディングを行ってください

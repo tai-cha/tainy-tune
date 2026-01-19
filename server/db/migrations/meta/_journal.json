@@ -64,6 +64,41 @@
       "when": 1766566061262,
       "tag": "0008_lying_maelstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1767763698221,
+      "tag": "0009_naive_human_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1767924366515,
+      "tag": "0010_chemical_umar",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1768447181784,
+      "tag": "0011_clammy_cassandra_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1768448238022,
+      "tag": "0012_rename_clientuuid_to_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1768448337922,
+      "tag": "0013_wakeful_ravenous",
+      "breakpoints": true
     }
   ]
 }

@@ -12,10 +12,10 @@ export default defineEventHandler(async (event) => {
   const userId = session.user.id;
 
   const body = await readBody(event);
-  const { mood_score } = body;
+  const { moodScore } = body;
 
-  if (typeof mood_score !== 'number') {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid mood_score' });
+  if (typeof moodScore !== 'number') {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid moodScore' });
   }
 
   // 1. Check for existing check-in within the last 1 hour
@@ -23,17 +23,17 @@ export default defineEventHandler(async (event) => {
 
   const existingCheckin = await db.select()
     .from(checkins)
-    .where(and(eq(checkins.userId, userId), gt(checkins.created_at, oneHourAgo)))
-    .orderBy(desc(checkins.created_at))
+    .where(and(eq(checkins.userId, userId), gt(checkins.createdAt, oneHourAgo)))
+    .orderBy(desc(checkins.createdAt))
     .limit(1);
 
   if (existingCheckin.length > 0) {
     // 2. Update existing
-    const targetId = existingCheckin[0].id;
+    const targetId = existingCheckin[0]!.id;
     const updated = await db.update(checkins)
       .set({
-        mood_score,
-        created_at: new Date() // Update timestamp to now
+        moodScore,
+        createdAt: new Date() // Update timestamp to now
       })
       .where(and(eq(checkins.id, targetId), eq(checkins.userId, userId)))
       .returning();
@@ -44,8 +44,8 @@ export default defineEventHandler(async (event) => {
     const inserted = await db.insert(checkins)
       .values({
         userId,
-        mood_score,
-        created_at: new Date(),
+        moodScore,
+        createdAt: new Date(),
       })
       .returning();
 

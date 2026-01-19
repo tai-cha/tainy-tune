@@ -4,6 +4,8 @@ import { StarIcon as StarIconSolid } from '@heroicons/vue/24/solid';
 import { useRoute } from 'vue-router';
 import { ref, watch, computed } from 'vue';
 import { signOut, useSession } from '~/app/utils/auth-client';
+import ToastContainer from '@app/components/ui/ToastContainer.vue'; // Explicit import to be safe
+import { useToast } from '@app/composables/useToast';
 
 const handleLogout = async () => {
   if (!confirm(t('auth.logoutConfirm'))) return;
@@ -14,6 +16,7 @@ const handleLogout = async () => {
 const route = useRoute();
 const { t } = useI18n();
 const session = useSession();
+const { error: toastError } = useToast();
 const user = computed(() => session.value?.data?.user);
 const isAdmin = computed(() => (user.value as any)?.role === 'admin');
 
@@ -70,14 +73,14 @@ const pinThread = async () => {
   const thread = activeThread.value;
   closeMenu();
   try {
-    const isCurrentlyPinned = !!thread.pinned_at;
+    const isCurrentlyPinned = !!thread.pinnedAt;
     await $fetch(`/api/chat/threads/${thread.id}`, {
       method: 'PATCH',
       body: { isPinned: !isCurrentlyPinned }
     });
     refresh();
   } catch (e) {
-    alert('Failed to update thread');
+    toastError(t('chat.updateError') || 'Failed to update thread');
   }
 };
 
@@ -94,7 +97,7 @@ const renameThread = async () => {
       });
       refresh();
     } catch (e) {
-      alert('Failed to rename thread');
+      toastError(t('chat.renameError') || 'Failed to rename thread');
     }
   }
 };
@@ -111,7 +114,7 @@ const deleteThread = async () => {
       navigateTo('/chat');
     }
   } catch (e) {
-    alert(t('chat.deleteError'));
+    toastError(t('chat.deleteError'));
   }
 };
 
@@ -187,7 +190,7 @@ const closeAllMenus = () => {
             <NuxtLink :to="`/chat/${thread.id}`"
               :class="[$style.threadLink, isActive(`/chat/${thread.id}`) && $style.activeThread]">
               <span :class="$style.threadTitle">{{ thread.title }}</span>
-              <StarIconSolid v-if="thread.pinned_at" :class="$style.pinnedIcon" />
+              <StarIconSolid v-if="thread.pinnedAt" :class="$style.pinnedIcon" />
             </NuxtLink>
 
             <button @click="showMenu($event, thread)" :class="$style.menuBtn">
@@ -261,8 +264,8 @@ const closeAllMenus = () => {
       <div v-if="activeThread" :class="$style.menuDropdown"
         :style="{ top: `${menuPos.top}px`, left: `${menuPos.left}px` }">
         <button @click="pinThread" :class="$style.menuItem">
-          <component :is="activeThread.pinned_at ? StarIcon : StarIconSolid" :class="$style.iconXs" />
-          {{ activeThread.pinned_at ? $t('chat.unpin') : $t('chat.pin') }}
+          <component :is="activeThread.pinnedAt ? StarIcon : StarIconSolid" :class="$style.iconXs" />
+          {{ activeThread.pinnedAt ? $t('chat.unpin') : $t('chat.pin') }}
         </button>
         <button @click="renameThread" :class="$style.menuItem">
           <PencilSquareIcon :class="$style.iconXs" />
@@ -274,6 +277,7 @@ const closeAllMenus = () => {
         </button>
       </div>
     </Teleport>
+    <ToastContainer />
   </div>
 </template>
 

@@ -45,14 +45,14 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. Save User Message
     await db.insert(messages).values({
-      thread_id: threadId,
+      threadId: threadId,
       role: 'user',
       content: message,
     });
 
-    // Update thread updated_at
+    // Update thread updatedAt
     await db.update(threads)
-      .set({ updated_at: new Date() })
+      .set({ updatedAt: new Date() })
       .where(eq(threads.id, threadId));
 
     // 2. Prepare Context
@@ -60,11 +60,11 @@ export default defineEventHandler(async (event) => {
     const [thread] = await db.select().from(threads).where(eq(threads.id, threadId));
 
     // Combine thread context IDs + validation message context IDs
-    const threadContextIds = thread?.context_ids || [];
+    const threadContextIds = thread?.contextIds || [];
     const messageContextIds = (contextIds && Array.isArray(contextIds)) ? contextIds : [];
 
     // Merge unique IDs
-    const allContextIds = Array.from(new Set([...threadContextIds, ...messageContextIds].map(Number)));
+    const allContextIds = Array.from(new Set([...threadContextIds, ...messageContextIds]));
     let contextText = '';
 
     // 2a. Fetch Explicit Context
@@ -78,8 +78,8 @@ export default defineEventHandler(async (event) => {
         contextText += '【ユーザーが指定した参照記録（コンテキスト）】:\n';
         targetJournals.forEach(j => {
           contextText += `
-[日付: ${j.created_at ? new Date(j.created_at).toLocaleDateString('ja-JP') : '不明'}]
-気分: ${j.mood_score ? j.mood_score + '/10' : '未記録'}
+[日付: ${j.createdAt ? new Date(j.createdAt).toLocaleDateString('ja-JP') : '不明'}]
+気分: ${j.moodScore != null ? j.moodScore + '/10' : '未記録'}
 タグ: ${j.tags ? j.tags.join(', ') : 'なし'}
 内容: ${j.content}
 (過去のAIアドバイス: ${j.advice || 'なし'})
@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
     const similarJournals = await searchSimilarJournals(userId, queryEmbedding);
 
     // Filter out journals that are already explicitly included (to avoid duplication)
-    const explicitIds = new Set((contextIds || []).map((cid: any) => Number(cid)));
+    const explicitIds = new Set((allContextIds || []));
     const uniqueSimilarJournals = similarJournals.filter(j => !explicitIds.has(j.id));
 
     if (uniqueSimilarJournals.length > 0) {
@@ -110,8 +110,8 @@ export default defineEventHandler(async (event) => {
     const history = await db
       .select()
       .from(messages)
-      .where(eq(messages.thread_id, threadId))
-      .orderBy(asc(messages.created_at)); // Oldest first
+      .where(eq(messages.threadId, threadId))
+      .orderBy(asc(messages.createdAt)); // Oldest first
 
     // Build chat history for Gemini
     // Note: Gemini API handles history differently via chatSession, but here we construct a single prompt with context.
@@ -161,7 +161,7 @@ export default defineEventHandler(async (event) => {
 
     // 5. Save AI Message
     const [aiMsg] = await db.insert(messages).values({
-      thread_id: threadId,
+      threadId: threadId,
       role: 'assistant',
       content: responseText,
     }).returning();

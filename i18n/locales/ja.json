@@ -15,7 +15,9 @@
     "required": "必須",
     "unit": {
       "minute": "分"
-    }
+    },
+    "offline": "オフライン",
+    "close": "閉じる"
   },
   "auth": {
     "logout": "ログアウト",
@@ -45,7 +47,8 @@
       },
       "chat": {
         "title": "AIパートナー",
-        "desc": "対話で深掘りする"
+        "desc": "対話で深掘りする",
+        "offline": "AIパートナーはオフラインです。"
       }
     },
     "recent": {
@@ -80,10 +83,12 @@
     "title": "New Journal",
     "subtitle": "今の気持ちや出来事を書き出しましょう",
     "form": {
-      "mood": "今の気分 (1-10)",
-      "content": "ここに書き込んでください...",
-      "analyze": "保存して分析"
+      "mood": "今の気分",
+      "content": "今、何を考えていますか？",
+      "analyze": "分析する"
     },
+    "offline_saved": "オフラインで保存しました。分析はオンライン時に実行されます。",
+    "saved_queued": "保存しました。通信状況が改善次第、同期します。",
     "result": {
       "title": "Analysis Result",
       "mood": "Mood Score",
@@ -137,7 +142,8 @@
     "rename": "名前を変更",
     "renamePrompt": "新しい名前を入力してください",
     "delete": "削除",
-    "contextLabel": "参照中の記録"
+    "contextLabel": "参照中の記録",
+    "offline_message": "AIパートナーはオフラインです。"
   },
   "journalCard": {
     "mood": "気分"
@@ -220,8 +226,13 @@
     "settings": {
       "title": "システム設定",
       "registration": "新規ユーザー登録",
-      "enabled": "受付中",
-      "disabled": "停止中",
+      "journalEditing": {
+        "title": "ジャーナル編集設定",
+        "enabled_desc": "ユーザーは自分の日記を編集できます（サーバー設定により許可）。",
+        "disabled_desc": "日記の編集は無効化されています。追記のみ可能です。"
+      },
+      "enabled": "有効",
+      "disabled": "無効",
       "turnstile": {
         "title": "Turnstile (Captcha)",
         "siteKey": "Site Key",

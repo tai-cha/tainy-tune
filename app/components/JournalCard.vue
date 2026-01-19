@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon, PencilSquareIcon } from '@heroicons/vue/24/outline';
+import { useToast } from '@app/composables/useToast';
 
 const props = defineProps<{
   journal: {
-    id: number;
+    id: number | string;
     content: string;
-    mood_score: number | null;
-    tags: string[] | null;
-    distortion_tags: string[] | null;
-    advice: string | null;
-    fact: string | null;
-    emotion: string | null;
-    is_analysis_failed: boolean | null;
-    created_at: string | Date | null;
+    moodScore: number | null;
+    tags?: string[] | null;
+    distortionTags?: string[] | null;
+    advice?: string | null;
+    fact?: string | null;
+    emotion?: string | null;
+    isAnalysisFailed?: boolean | null;
+    createdAt: string | Date | null;
   };
   hideDiscussion?: boolean;
 }>();
@@ -34,9 +35,16 @@ const getMoodClass = (score: number) => {
 const router = useRouter();
 const isRetrying = ref(false);
 const isDeleting = ref(false);
+const { error: toastError } = useToast();
+
+const { data: settings } = useSystemSettings();
 
 const startDiscussion = () => {
   router.push({ path: '/chat/new', query: { contextId: props.journal.id } });
+};
+
+const startEdit = () => {
+  router.push(`/journals/${props.journal.id}/edit`);
 };
 
 const handleRetry = async () => {
@@ -47,7 +55,7 @@ const handleRetry = async () => {
     // Global refresh to update the list
     await refreshNuxtData();
   } catch (error: any) {
-    alert(error.message || 'Retry failed');
+    toastError(error.message || 'Retry failed');
   } finally {
     isRetrying.value = false;
   }
@@ -63,7 +71,7 @@ const handleDelete = async () => {
     // Global refresh to update the list
     await refreshNuxtData();
   } catch (error: any) {
-    alert(error.message || 'Delete failed');
+    toastError(error.message || 'Delete failed');
   } finally {
     isDeleting.value = false;
   }
@@ -76,17 +84,20 @@ const handleDelete = async () => {
       <div :class="$style.meta">
         <span :class="$style.metaText">
           <ClientOnly>
-            {{ formatDate(journal.created_at) }}
+            {{ formatDate(journal.createdAt) }}
           </ClientOnly>
         </span>
-        <span :class="getMoodClass(journal.mood_score)" v-if="journal.mood_score">
-          {{ $t('journalCard.mood') }}: {{ journal.mood_score }}
+        <span :class="getMoodClass(journal.moodScore)" v-if="journal.moodScore">
+          {{ $t('journalCard.mood') }}: {{ journal.moodScore }}
         </span>
       </div>
 
       <div :class="$style.actions">
         <button :class="$style.actionBtn" @click="handleDelete" :disabled="isDeleting" title="削除">
           <TrashIcon :class="$style.actionIcon" />
+        </button>
+        <button v-if="settings?.allowJournalEditing" :class="$style.actionBtn" @click="startEdit" title="編集">
+          <PencilSquareIcon :class="$style.actionIcon" />
         </button>
         <button v-if="!hideDiscussion" :class="$style.actionBtn" @click="startDiscussion"
           :title="$t('journal.discuss')">
@@ -97,11 +108,11 @@ const handleDelete = async () => {
 
     <p :class="$style.content">{{ journal.content }}</p>
 
-    <div :class="$style.tags" v-if="journal.tags?.length || journal.distortion_tags?.length">
+    <div :class="$style.tags" v-if="journal.tags?.length || journal.distortionTags?.length">
       <span v-for="tag in journal.tags" :key="tag" :class="$style.tag">
         #{{ tag }}
       </span>
-      <span v-for="dist in journal.distortion_tags" :key="dist" :class="[$style.tag, $style.distortion]">
+      <span v-for="dist in journal.distortionTags" :key="dist" :class="[$style.tag, $style.distortion]">
         ⚠ {{ $te(`distortions.${dist}`) ? $t(`distortions.${dist}`) : dist }}
       </span>
     </div>
@@ -123,7 +134,7 @@ const handleDelete = async () => {
         <p :class="$style.adviceText">{{ journal.advice }}</p>
       </div>
 
-      <button v-if="journal.is_analysis_failed" @click="handleRetry" :class="$style.retryBtn" :disabled="isRetrying">
+      <button v-if="journal.isAnalysisFailed" @click="handleRetry" :class="$style.retryBtn" :disabled="isRetrying">
         <ArrowPathIcon :class="[$style.retryIcon, isRetrying && $style.spin]" />
         {{ isRetrying ? '分析中...' : '再分析' }}
       </button>

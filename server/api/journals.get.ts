@@ -1,6 +1,6 @@
 import { journals } from '@server/db/schema';
 
-import { desc, and, gte, lte, ilike, or, eq, sql } from 'drizzle-orm';
+import { desc, and, gte, lte, ilike, or, eq, sql, isNull } from 'drizzle-orm';
 
 import { db } from '@server/db';
 
@@ -20,25 +20,38 @@ export default defineEventHandler(async (event) => {
   const endDate = query.endDate as string | undefined;
   const search = query.search as string | undefined;
   const limit = query.limit ? parseInt(query.limit as string) : undefined;
+  const updatedAfter = query.updatedAfter as string | undefined;
 
   // Build filters
   const filters = [eq(journals.userId, userId)];
-  if (id) filters.push(eq(journals.id, Number(id)));
-  if (startDate) filters.push(gte(journals.created_at, new Date(startDate)));
-  if (endDate) filters.push(lte(journals.created_at, new Date(endDate)));
+  if (id) filters.push(eq(journals.id, id));
+  if (startDate) filters.push(gte(journals.createdAt, new Date(startDate)));
+  if (endDate) filters.push(lte(journals.createdAt, new Date(endDate)));
+  if (updatedAfter) {
+    const date = new Date(updatedAfter);
+
+    if (Number.isNaN(date.getTime())) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid updatedAfter' });
+    }
+
+    filters.push(or(
+      gte(journals.updatedAt, date),
+      and(isNull(journals.updatedAt), gte(journals.createdAt, date))
+    )!);
+  }
   if (search) {
     const searchPattern = `%${search}%`;
     const orConditions = [
       ilike(journals.content, searchPattern),
       sql`array_to_string(${journals.tags}, ' ') ILIKE ${searchPattern}`,
       // Search raw English keys
-      sql`array_to_string(${journals.distortion_tags}, ' ') ILIKE ${searchPattern}`
+      sql`array_to_string(${journals.distortionTags}, ' ') ILIKE ${searchPattern}`
     ];
 
     // Check if search matches any localized distortion names
     const matchedKeys = findDistortionKeys(search);
     matchedKeys.forEach(key => {
-      orConditions.push(sql`array_to_string(${journals.distortion_tags}, ' ') ILIKE ${`%${key}%`}`);
+      orConditions.push(sql`array_to_string(${journals.distortionTags}, ' ') ILIKE ${`%${key}%`}`);
     });
 
     const searchFilter = or(...orConditions);
@@ -52,16 +65,15 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(journals)
       .where(and(...filters)!)
-      .orderBy(desc(journals.created_at));
+      .orderBy(desc(journals.createdAt))
+      .$dynamic();
 
     if (limit) {
-      // @ts-ignore - limit is valid but drizzle types might complain depending on version or complexity
       queryBuilder = queryBuilder.limit(limit);
     }
 
     const offset = query.offset ? parseInt(query.offset as string) : undefined;
     if (offset) {
-      // @ts-ignore
       queryBuilder = queryBuilder.offset(offset);
     }
 

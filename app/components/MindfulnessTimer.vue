@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { PlayIcon, PauseIcon, StopIcon } from '@heroicons/vue/24/solid';
+import { useToast } from '@app/composables/useToast';
 
 const timeLeft = ref(0);
 const isRunning = ref(false);
 const selectedDuration = ref(60); // Default 1 min
 const timer = ref<NodeJS.Timeout | null>(null);
 const { t } = useI18n();
+const { success: toastSuccess } = useToast();
 
 const DURATIONS = computed(() => [
   { label: `1 ${t('common.unit.minute')}`, value: 60 },
@@ -50,9 +52,9 @@ async function finishTimer() {
   try {
     await $fetch('/api/meditations', {
       method: 'POST',
-      body: { duration_seconds: selectedDuration.value },
+      body: { durationSeconds: selectedDuration.value },
     });
-    alert(t('dashboard.selfCare.timer.finished'));
+    toastSuccess(t('dashboard.selfCare.timer.finished'));
   } catch (e) {
     console.error(e);
   }

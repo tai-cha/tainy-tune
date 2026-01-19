@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue';
+import { useToast } from '@app/composables/useToast';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -19,6 +20,7 @@ const input = ref('');
 const messages = ref<Message[]>(props.initialMessages ? [...props.initialMessages] : []);
 const isLoading = ref(false);
 const messagesEndRef = ref<HTMLElement | null>(null);
+const { error: toastError } = useToast();
 
 const scrollToBottom = async () => {
   await nextTick();
@@ -52,7 +54,7 @@ const sendMessage = async () => {
     // Show error message
     // If it's 429, the error message from backend is user-friendly.
     const msg = error.data?.message || error.message || useNuxtApp().$i18n.t('chat.error');
-    alert(msg);
+    toastError(msg);
     // Input remains populated for retry
   } finally {
     isLoading.value = false;

@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, useCssModule } from 'vue';
+import { ref, computed, useCssModule, watch } from 'vue';
+import { db } from '~/utils/local-db';
+import { useToast } from '@app/composables/useToast';
 
 const content = ref('');
 const mood = ref(5);
@@ -7,6 +9,7 @@ const loading = ref(false);
 const result = ref<any>(null);
 
 const style = useCssModule();
+const { t } = useI18n();
 
 const moodColorClass = computed(() => {
   if (mood.value >= 8) return style.moodGood;
@@ -14,29 +17,215 @@ const moodColorClass = computed(() => {
   return style.moodBad;
 });
 
+const props = defineProps<{
+  initialJournal?: {
+    id: string;
+    content: string;
+    moodScore: number;
+    createdAt?: Date | string;
+    [key: string]: any;
+  }
+}>();
+
+const emit = defineEmits(['update:success']);
+
+// Reactively update form when props change (e.g. async load)
+watch(() => props.initialJournal, (newVal) => {
+  if (newVal) {
+    content.value = newVal.content;
+    mood.value = newVal.moodScore;
+  }
+}, { immediate: true });
+
+
+const { online, getUUID } = useSync();
+const { success: toastSuccess, error: toastError } = useToast();
+
 async function submitJournal() {
   if (!content.value.trim()) return;
 
   loading.value = true;
-  result.value = null; // Reset result
+  result.value = null;
 
   try {
-    const response = await $fetch('/api/journal', {
-      method: 'POST',
-      body: {
-        content: content.value,
-        mood: mood.value,
-      },
-    });
+    const isEdit = !!props.initialJournal;
+    // Use existing ID if editing, otherwise generate new
+    const uuid = isEdit ? props.initialJournal!.id : getUUID();
 
-    // Show result
-    result.value = response;
-    content.value = '';
-    mood.value = 5;
+    const entryData = {
+      id: uuid,
+      content: content.value,
+      moodScore: mood.value,
+      createdAt: isEdit && props.initialJournal?.createdAt ? new Date(props.initialJournal.createdAt) : new Date(),
+      updatedAt: new Date(),
+      synced: 0
+    };
 
+    // 1. Save Locally
+    if (isEdit) {
+      await db.journalEntries.update(uuid, entryData);
+    } else {
+      await db.journalEntries.add(entryData);
+    }
+
+    // 2. Queue Sync Action (Always queue first or try direct?)
+    // If we queue first, we prevent race conditions.
+    // But for immediate feedback, we want to try direct if online.
+    // Hybrid:
+
+    if (!online.value) {
+      // Offline: Queue and Notify
+      if (isEdit) {
+        await db.syncQueue.add({
+          action: 'update',
+          payload: { ...entryData },
+          createdAt: new Date().getTime()
+        });
+        toastSuccess(t('journal.offline_updated') || 'Updated offline.');
+      } else {
+        await db.syncQueue.add({
+          action: 'create',
+          payload: { ...entryData },
+          createdAt: new Date().getTime()
+        });
+        toastSuccess(t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
+      }
+
+      if (!isEdit) {
+        content.value = '';
+        mood.value = 5;
+      }
+    } else {
+      // Online: Try direct send (for immediate analysis result)
+      // We still save locally first (done above).
+      try {
+
+        const response = await (isEdit ? $fetch(`/api/journals/${uuid}`, {
+          method: 'PUT',
+          body: {
+            id: uuid,
+            content: content.value,
+            moodScore: mood.value
+          }
+        }) : $fetch('/api/journal', {
+          method: 'POST',
+          body: {
+            id: uuid,
+            content: content.value,
+            moodScore: mood.value
+          }
+        }));
+
+        if (response == null) {
+          throw new Error('Failed to save journal');
+        }
+
+        // Success! Update local sync status and result
+        // Fetch existing local entry to merge server fields (analysis) while keeping local ID
+        const localEntry = await db.journalEntries.get(uuid);
+
+        if (localEntry) {
+          const missingFields: string[] = [];
+          if (response.tags == null) missingFields.push('tags');
+          if (response.distortionTags == null) missingFields.push('distortionTags');
+          if (response.embedding == null) missingFields.push('embedding');
+          if (response.advice == null) missingFields.push('advice');
+          if (response.moodScore == null) missingFields.push('moodScore');
+          if (response.fact == null) missingFields.push('fact');
+          if (response.emotion == null) missingFields.push('emotion');
+
+          if (missingFields.length > 0) {
+            throw new Error(`Failed to save journal. Missing fields: ${missingFields.join(', ')}`);
+          }
+
+          // 上でガードしているが、TypeScriptの型推論は判別できないので明示的にフォールバックする
+          const mergedEntry = {
+            ...localEntry,
+            ...response,
+            moodScore: response.moodScore ?? localEntry.moodScore ?? 5,
+            tags: response.tags as string[],
+            distortionTags: response.distortionTags as string[],
+            advice: response.advice as string,
+            fact: response.fact as string,
+            emotion: response.emotion as string,
+            isAnalysisFailed: response.isAnalysisFailed ?? false,
+            id: uuid, // Ensure consistent ID
+            synced: 1,
+            // Ensure Dates are objects for Dexie/App consistency
+            createdAt: response.createdAt ? new Date(response.createdAt) : localEntry.createdAt,
+            updatedAt: response.updatedAt ? new Date(response.updatedAt) : new Date(),
+          };
+
+          await db.journalEntries.put(mergedEntry);
+
+          // Update result and UI to reflect merged state
+          result.value = mergedEntry;
+
+          if (isEdit) {
+            content.value = mergedEntry.content;
+            mood.value = mergedEntry.moodScore;
+            emit('update:success', mergedEntry);
+          }
+        } else {
+          // Fallback if local entry missing for some reason (rare)
+          // Validate required fields same as main path
+          const missingFields: string[] = [];
+          if (response.tags == null) missingFields.push('tags');
+          if (response.distortionTags == null) missingFields.push('distortionTags');
+          if (response.embedding == null) missingFields.push('embedding');
+          if (response.advice == null) missingFields.push('advice');
+          if (response.moodScore == null) missingFields.push('moodScore');
+          if (response.fact == null) missingFields.push('fact');
+          if (response.emotion == null) missingFields.push('emotion');
+
+          if (missingFields.length > 0) {
+            throw new Error(`Failed to save journal. Missing fields: ${missingFields.join(', ')}`);
+          }
+
+          // Save server response to local DB to maintain consistency
+          const fallbackEntry = {
+            ...response,
+            moodScore: response.moodScore as number,
+            tags: response.tags as string[],
+            distortionTags: response.distortionTags as string[],
+            advice: response.advice as string,
+            fact: response.fact as string,
+            emotion: response.emotion as string,
+            id: uuid,
+            synced: 1,
+            isAnalysisFailed: false,
+            createdAt: response.createdAt ? new Date(response.createdAt) : new Date(),
+            updatedAt: response.updatedAt ? new Date(response.updatedAt) : new Date(),
+          };
+          await db.journalEntries.put(fallbackEntry);
+          result.value = fallbackEntry;
+          if (isEdit) emit('update:success', fallbackEntry);
+        }
+
+        if (!isEdit) {
+          content.value = '';
+          mood.value = 5;
+        }
+
+      } catch (err) {
+        console.warn('Online submit failed, queuing instead:', err);
+        // Fallback to queue
+        await db.syncQueue.add({
+          action: isEdit ? 'update' : 'create',
+          payload: { ...entryData },
+          createdAt: new Date().getTime()
+        });
+        toastSuccess(t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
+
+        if (!isEdit) {
+          content.value = '';
+          mood.value = 5;
+        }
+      }
+    }
   } catch (error) {
     console.error('Failed to save journal:', error);
-    alert('Failed to save journal. Please try again.');
+    toastError(t('common.error'));
   } finally {
     loading.value = false;
   }
@@ -62,7 +251,7 @@ async function submitJournal() {
       <div :class="$style.actions">
         <button type="submit" :class="[$style.submitBtn, 'btn-primary']" :disabled="loading">
           <span v-if="loading">{{ $t('common.saving') }}</span>
-          <span v-else>{{ $t('journal.form.analyze') }}</span>
+          <span v-else>{{ initialJournal ? $t('common.update') : $t('journal.form.analyze') }}</span>
         </button>
       </div>
     </form>
