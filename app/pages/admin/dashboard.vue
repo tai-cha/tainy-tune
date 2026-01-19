@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useToast } from '@app/composables/useToast';
 definePageMeta({
   // middleware: 'auth' // global
 });
 
 const { t } = useI18n();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const { data: users, refresh: refreshUsers } = await useFetch('/api/admin/users');
 const { data: settings, refresh: refreshSettings } = await useFetch('/api/admin/settings');
@@ -34,9 +36,9 @@ async function saveKeys() {
       }
     });
     await refreshSettings();
-    alert(t('admin.settings.turnstile.saved'));
+    toastSuccess(t('admin.settings.turnstile.saved'));
   } catch (e: any) {
-    alert(t('common.error'));
+    toastError(t('common.error'));
   } finally {
     loading.value = false;
   }
@@ -85,7 +87,7 @@ async function updateRole(userId: string, event: Event) {
       body: { role: newRole }
     });
   } catch (e) {
-    alert(t('admin.users.actions.promote'));
+    toastError(t('admin.users.actions.promote'));
     await refreshUsers();
   }
 }
@@ -99,9 +101,9 @@ async function resetPassword(userId: string) {
       method: 'POST',
       body: { newPassword }
     });
-    alert(t('admin.users.actions.resetSuccess'));
+    toastSuccess(t('admin.users.actions.resetSuccess'));
   } catch (e: any) {
-    alert(t('admin.users.actions.resetError', { message: e.response?._data?.message || e.message }));
+    toastError(t('admin.users.actions.resetError', { message: e.response?._data?.message || e.message }));
   }
 }
 

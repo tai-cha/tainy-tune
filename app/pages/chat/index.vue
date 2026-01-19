@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TrashIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'; // Check icons
+import { useToast } from '@app/composables/useToast';
 
 import { useOnline } from '@vueuse/core';
 
@@ -14,13 +15,15 @@ watch(isOnline, (online) => {
   if (online) refresh();
 });
 
+const { error: toastError } = useToast();
+
 const deleteThread = async (id: number) => {
   if (!confirm(t('chat.confirmDelete'))) return;
   try {
     await $fetch(`/api/chat/threads/${id}`, { method: 'DELETE' });
     refresh();
   } catch (e) {
-    alert(t('chat.deleteError'));
+    toastError(t('chat.deleteError'));
   }
 };
 </script>

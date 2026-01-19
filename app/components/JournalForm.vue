@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, useCssModule, watch } from 'vue';
 import { db } from '~/utils/local-db';
+import { useToast } from '@app/composables/useToast';
 
 const content = ref('');
 const mood = ref(5);
@@ -38,6 +39,7 @@ watch(() => props.initialJournal, (newVal) => {
 
 
 const { online, getUUID } = useSync();
+const { success: toastSuccess, error: toastError } = useToast();
 
 async function submitJournal() {
   if (!content.value.trim()) return;
@@ -80,14 +82,14 @@ async function submitJournal() {
           payload: { ...entryData },
           createdAt: new Date().getTime()
         });
-        alert(t('journal.offline_updated') || 'Updated offline.');
+        toastSuccess(t('journal.offline_updated') || 'Updated offline.');
       } else {
         await db.syncQueue.add({
           action: 'create',
           payload: { ...entryData },
           createdAt: new Date().getTime()
         });
-        alert(t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
+        toastSuccess(t('journal.offline_saved') || 'Saved offline. Analysis will complete when back online.');
       }
 
       if (!isEdit) {
@@ -214,7 +216,7 @@ async function submitJournal() {
           payload: { ...entryData },
           createdAt: new Date().getTime()
         });
-        alert(t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
+        toastSuccess(t('journal.saved_queued') || 'Saved. Will retry syncing shortly.');
 
         if (!isEdit) {
           content.value = '';
@@ -224,7 +226,7 @@ async function submitJournal() {
     }
   } catch (error) {
     console.error('Failed to save journal:', error);
-    alert(t('common.error'));
+    toastError(t('common.error'));
   } finally {
     loading.value = false;
   }
@@ -237,7 +239,7 @@ async function submitJournal() {
 
       <div :class="$style.moodSection">
         <label :class="$style.label">{{ $t('journal.form.mood') }}: <span :class="moodColorClass">{{ mood
-        }}</span></label>
+            }}</span></label>
         <input type="range" min="1" max="10" v-model.number="mood" :class="$style.slider"
           :style="{ backgroundSize: `${(mood - 1) * 100 / 9}% 100%` }" />
       </div>

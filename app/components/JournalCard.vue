@@ -2,6 +2,7 @@
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon, PencilSquareIcon } from '@heroicons/vue/24/outline';
+import { useToast } from '@app/composables/useToast';
 
 const props = defineProps<{
   journal: {
@@ -34,6 +35,7 @@ const getMoodClass = (score: number) => {
 const router = useRouter();
 const isRetrying = ref(false);
 const isDeleting = ref(false);
+const { error: toastError } = useToast();
 
 const { data: settings } = useSystemSettings();
 
@@ -53,7 +55,7 @@ const handleRetry = async () => {
     // Global refresh to update the list
     await refreshNuxtData();
   } catch (error: any) {
-    alert(error.message || 'Retry failed');
+    toastError(error.message || 'Retry failed');
   } finally {
     isRetrying.value = false;
   }
@@ -69,7 +71,7 @@ const handleDelete = async () => {
     // Global refresh to update the list
     await refreshNuxtData();
   } catch (error: any) {
-    alert(error.message || 'Delete failed');
+    toastError(error.message || 'Delete failed');
   } finally {
     isDeleting.value = false;
   }

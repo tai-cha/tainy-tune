@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { db } from '~/utils/local-db';
+import { useToast } from '@app/composables/useToast';
 
 const route = useRoute();
 const router = useRouter();
@@ -50,10 +51,11 @@ definePageMeta({
 });
 
 const { data: settings } = useSystemSettings();
+const { error: toastError } = useToast();
 
 watchEffect(() => {
   if (settings.value && !settings.value.allowJournalEditing) {
-    alert('Journal editing is disabled.'); // Or use a nicer UI state
+    toastError('Journal editing is disabled.'); // Or use a nicer UI state
     router.push('/history');
   }
 });

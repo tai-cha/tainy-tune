@@ -4,6 +4,8 @@ import { StarIcon as StarIconSolid } from '@heroicons/vue/24/solid';
 import { useRoute } from 'vue-router';
 import { ref, watch, computed } from 'vue';
 import { signOut, useSession } from '~/app/utils/auth-client';
+import ToastContainer from '@app/components/ui/ToastContainer.vue'; // Explicit import to be safe
+import { useToast } from '@app/composables/useToast';
 
 const handleLogout = async () => {
   if (!confirm(t('auth.logoutConfirm'))) return;
@@ -14,6 +16,7 @@ const handleLogout = async () => {
 const route = useRoute();
 const { t } = useI18n();
 const session = useSession();
+const { error: toastError } = useToast();
 const user = computed(() => session.value?.data?.user);
 const isAdmin = computed(() => (user.value as any)?.role === 'admin');
 
@@ -77,7 +80,7 @@ const pinThread = async () => {
     });
     refresh();
   } catch (e) {
-    alert('Failed to update thread');
+    toastError(t('chat.updateError') || 'Failed to update thread');
   }
 };
 
@@ -93,8 +96,9 @@ const renameThread = async () => {
         body: { title: newTitle }
       });
       refresh();
+      refresh();
     } catch (e) {
-      alert('Failed to rename thread');
+      toastError(t('chat.renameError') || 'Failed to rename thread');
     }
   }
 };
@@ -111,7 +115,7 @@ const deleteThread = async () => {
       navigateTo('/chat');
     }
   } catch (e) {
-    alert(t('chat.deleteError'));
+    toastError(t('chat.deleteError'));
   }
 };
 
@@ -274,6 +278,7 @@ const closeAllMenus = () => {
         </button>
       </div>
     </Teleport>
+    <ToastContainer />
   </div>
 </template>
 
