@@ -29,6 +29,11 @@ export default defineEventHandler(async (event) => {
   if (endDate) filters.push(lte(journals.createdAt, new Date(endDate)));
   if (updatedAfter) {
     const date = new Date(updatedAfter);
+
+    if (Number.isNaN(date.getTime())) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid updatedAfter' });
+    }
+
     filters.push(or(
       gte(journals.updatedAt, date),
       and(isNull(journals.updatedAt), gte(journals.createdAt, date))
