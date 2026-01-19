@@ -42,8 +42,12 @@ const { fetchJournals } = useJournalQuery();
 
 // Data Fetching
 const journals = ref<any[]>([]);
+const latestRequestId = ref(0);
 
 const fetchCalendarData = async () => {
+  latestRequestId.value++;
+  const requestId = latestRequestId.value;
+
   const query: any = {};
   if (viewMode.value === 'week') {
     query.startDate = startOfWeek(currentDate.value);
@@ -61,10 +65,15 @@ const fetchCalendarData = async () => {
   }
 
   try {
-    journals.value = await fetchJournals(query) || [];
+    const data = await fetchJournals(query) || [];
+    if (requestId === latestRequestId.value) {
+      journals.value = data;
+    }
   } catch (e) {
     console.error('Failed to fetch calendar data', e);
-    journals.value = [];
+    if (requestId === latestRequestId.value) {
+      journals.value = [];
+    }
   }
 };
 
@@ -249,7 +258,8 @@ const selectedDayJournals = computed(() => {
         <div v-if="searchQuery" :class="$style.searchStatus">
           {{ $t('history.search.results', {
             count: viewMode === 'list' ? (allJournals?.length || 0) : (journals?.length
-              || 0) }) }}
+              || 0)
+          }) }}
         </div>
       </div>
     </header>
