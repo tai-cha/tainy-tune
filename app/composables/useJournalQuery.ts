@@ -70,8 +70,8 @@ export const useJournalQuery = () => {
 
     // Pagination
     if (params.offset !== undefined || params.limit !== undefined) {
-      const offset = params.offset || 0;
-      const limit = params.limit || result.length;
+      const offset = params.offset ?? 0;
+      const limit = params.limit ?? result.length;
       result = result.slice(offset, offset + limit);
     }
 

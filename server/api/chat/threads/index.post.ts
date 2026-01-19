@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
             targetJournals.forEach(j => {
               contextText += `
 [日付: ${j.createdAt ? new Date(j.createdAt).toLocaleDateString('ja-JP') : '不明'}]
-気分: ${j.moodScore ? j.moodScore + '/10' : '未記録'}
+気分: ${j.moodScore != null ? j.moodScore + '/10' : '未記録'}
 タグ: ${j.tags ? j.tags.join(', ') : 'なし'}
 内容: ${j.content}
 (過去のAIアドバイス: ${j.advice || 'なし'})
