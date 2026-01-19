@@ -112,6 +112,8 @@ export default defineEventHandler(async (event) => {
       // Existing logic in post.ts doesn't explicitly handle analysis failure by fallback, it lets it throw or return default.
       // analyzeJournal usually returns a structure even on failure (fallback).
     }
+  } else {
+    analysisFailed = existing.isAnalysisFailed ?? false;
   }
 
   // Update database
