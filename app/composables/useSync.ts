@@ -112,7 +112,7 @@ export const useSync = () => {
         const unsyncedIds = new Set(unsyncedEntries.map(e => e.id));
 
         const entries = journals
-          .filter((j: any) => {
+          .filter((j) => {
             // 2. Conflict resolution: Skip if local has unsynced changes
             if (unsyncedIds.has(j.id)) {
               console.warn(`Conflict detected for journal ${j.id}. KEEPING local unsynced version.`);
@@ -120,15 +120,15 @@ export const useSync = () => {
             }
             return true;
           })
-          .map((j: any) => ({
+          .map((j) => ({
             id: j.id, // Direct UUID from server/local
             content: j.content,
             moodScore: j.moodScore,
-            tags: j.tags,
-            distortionTags: j.distortionTags,
-            advice: j.advice,
-            fact: j.fact,
-            emotion: j.emotion,
+            tags: j.tags ?? [],
+            distortionTags: j.distortionTags ?? [],
+            advice: j.advice ?? '',
+            fact: j.fact ?? '',
+            emotion: j.emotion ?? '',
             createdAt: new Date(j.createdAt),
             updatedAt: j.updatedAt ? new Date(j.updatedAt) : null,
             synced: 1

@@ -65,7 +65,7 @@ export const journals = pgTable('journals', {
   fact: text('fact'),
   emotion: text('emotion'),
   isAnalysisFailed: boolean('isAnalysisFailed').default(false),
-  createdAt: timestamp('createdAt').defaultNow(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt'),
   embedding: vector('embedding', { dimensions: 384 }),
 });
