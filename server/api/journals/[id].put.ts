@@ -103,6 +103,7 @@ export default defineEventHandler(async (event) => {
       }
 
       aiAnalysis = await analyzeJournal(content, contextJournals);
+      analysisFailed = aiAnalysis.isAnalysisFailed ?? false;
 
     } catch (error) {
       console.error('Failed to re-analyze journal:', error);
