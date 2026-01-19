@@ -25,12 +25,19 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event);
-  const { content, moodScore, tags } = body;
+  const { content, moodScore } = body;
 
   if (typeof content !== 'string' || content.trim() === '') {
     throw createError({
       statusCode: 400,
       statusMessage: 'Content is required and must be a non-empty string.',
+    });
+  }
+
+  if (typeof moodScore !== 'number') {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Mood score is required and must be a number.',
     });
   }
 
@@ -62,7 +69,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Perform Update
   let newEmbedding: number[] | undefined;
-  
+
   // Generate embedding first if content changed
   if (content !== existing.content) {
     try {
@@ -82,7 +89,6 @@ export default defineEventHandler(async (event) => {
       content,
       moodScore,
       isAnalysisFailed: false, // Reset flag on manual edit
-      tags,
       updatedAt: new Date(),
     };
 
