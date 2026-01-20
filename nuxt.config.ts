@@ -123,6 +123,16 @@ export default defineNuxtConfig({
       'dev:reload': () => {
         require('onnxruntime-node');
       },
+      close: async () => {
+        // Copy migrations to .output/server/migrations on build close
+        const { cpSync, existsSync } = await import('fs');
+        const { resolve } = await import('path');
+        const src = resolve(process.cwd(), 'server/db/migrations');
+        const dest = resolve(process.cwd(), '.output/server/migrations');
+        if (existsSync(src) && existsSync(resolve(process.cwd(), '.output/server'))) {
+          cpSync(src, dest, { recursive: true });
+        }
+      }
     },
   },
   runtimeConfig: {
