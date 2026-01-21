@@ -106,6 +106,12 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
+    externals: {
+      traceInclude: [
+        'node_modules/@xenova/transformers',
+        'node_modules/onnxruntime-node',
+      ],
+    },
     typescript: {
       tsConfig: {
         compilerOptions: {
