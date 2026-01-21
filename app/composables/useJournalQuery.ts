@@ -63,6 +63,9 @@ export const useJournalQuery = () => {
     // Search & Filter
     let result = await collection.toArray();
 
+    // Filter out logically deleted items
+    result = result.filter(j => !j.isDeleted);
+
     if (params.search) {
       const q = params.search.toLowerCase();
       result = result.filter(j => j.content?.toLowerCase()?.includes(q));

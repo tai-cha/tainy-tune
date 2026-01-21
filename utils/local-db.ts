@@ -12,6 +12,7 @@ export interface JournalEntry {
   createdAt: Date;
   updatedAt: Date | null;
   synced: number; // 0: not synced, 1: synced
+  isDeleted?: boolean;
   isAnalysisFailed?: boolean;
 }
 

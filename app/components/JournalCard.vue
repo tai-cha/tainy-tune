@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon, PencilSquareIcon } from '@heroicons/vue/24/outline';
 import { useToast } from '@app/composables/useToast';
-import type { JournalEntry } from '~/utils/local-db';
+import { db, type JournalEntry } from '~/utils/local-db';
 
 const props = defineProps<{
   journal: {
@@ -38,6 +38,7 @@ const isRetrying = ref(false);
 const isDeleting = ref(false);
 const { error: toastError } = useToast();
 
+const { online } = useSync();
 const { data: settings } = useSystemSettings();
 
 const startDiscussion = () => {
@@ -54,7 +55,7 @@ const emit = defineEmits<{
 }>();
 
 const handleRetry = async () => {
-  if (isRetrying.value) return;
+  if (isRetrying.value || !online.value) return;
   isRetrying.value = true;
   try {
     const updatedJournal = await $fetch<JournalEntry>(`/api/journals/${props.journal.id}/analyze`, { method: 'POST' });
@@ -71,11 +72,37 @@ const handleDelete = async () => {
 
   if (isDeleting.value) return;
   isDeleting.value = true;
+
   try {
-    await $fetch(`/api/journals/${props.journal.id}`, { method: 'DELETE' });
+    // 1. Mark as deleted locally (Soft Delete) & Optimistic UI
+    await db.journalEntries.update(props.journal.id, { isDeleted: true, synced: 0 });
     emit('deleted', props.journal.id);
+
+    // 2. Try direct delete if online
+    if (online.value) {
+      try {
+        await $fetch(`/api/journals/${props.journal.id}`, { method: 'DELETE' });
+        // Success -> Hard delete locally
+        await db.journalEntries.delete(props.journal.id);
+        return; // Complete
+      } catch (e) {
+        console.warn('Online delete failed, falling back to queue:', e);
+        // Fallthrough to queue
+      }
+    }
+
+    // 3. Queue for sync (Offline or Online-Fail)
+    await db.syncQueue.add({
+      action: 'delete',
+      payload: { id: props.journal.id },
+      createdAt: Date.now()
+    });
+
   } catch (error: any) {
+    console.error('Delete process failed', error);
     toastError(error.message || 'Delete failed');
+    // If we failed to soft-delete or queue, we might want to revert UI? 
+    // But complexity is high. For now, toast is enough.
   } finally {
     isDeleting.value = false;
   }
@@ -103,7 +130,7 @@ const handleDelete = async () => {
         <button v-if="settings?.allowJournalEditing" :class="$style.actionBtn" @click="startEdit" title="編集">
           <PencilSquareIcon :class="$style.actionIcon" />
         </button>
-        <button v-if="!hideDiscussion" :class="$style.actionBtn" @click="startDiscussion"
+        <button v-if="!hideDiscussion && online" :class="$style.actionBtn" @click="startDiscussion"
           :title="$t('journal.discuss')">
           <ChatBubbleBottomCenterTextIcon :class="$style.actionIcon" />
         </button>
@@ -138,7 +165,8 @@ const handleDelete = async () => {
         <p :class="$style.adviceText">{{ journal.advice }}</p>
       </div>
 
-      <button v-if="journal.isAnalysisFailed" @click="handleRetry" :class="$style.retryBtn" :disabled="isRetrying">
+      <button v-if="journal.isAnalysisFailed && online" @click="handleRetry" :class="$style.retryBtn"
+        :disabled="isRetrying">
         <ArrowPathIcon :class="[$style.retryIcon, isRetrying && $style.spin]" />
         {{ isRetrying ? '分析中...' : '再分析' }}
       </button>
