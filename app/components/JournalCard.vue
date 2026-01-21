@@ -7,7 +7,7 @@ import type { JournalEntry } from '~/utils/local-db';
 
 const props = defineProps<{
   journal: {
-    id: number | string;
+    id: string;
     content: string;
     moodScore: number | null;
     tags?: string[] | null;
@@ -50,6 +50,7 @@ const startEdit = () => {
 
 const emit = defineEmits<{
   (e: 'updated', journal: JournalEntry): void;
+  (e: 'deleted', id: string): void;
 }>();
 
 const handleRetry = async () => {
@@ -72,8 +73,7 @@ const handleDelete = async () => {
   isDeleting.value = true;
   try {
     await $fetch(`/api/journals/${props.journal.id}`, { method: 'DELETE' });
-    // Global refresh to update the list
-    await refreshNuxtData();
+    emit('deleted', props.journal.id);
   } catch (error: any) {
     toastError(error.message || 'Delete failed');
   } finally {

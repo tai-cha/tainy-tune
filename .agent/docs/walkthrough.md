@@ -86,7 +86,7 @@ Accessible at `/settings/profile`.
 ## 7. Offline Capability (Phase 9)
 Seamless journaling regardless of network status.
 - **Offline Journaling**: Entries created offline are saved locally (IndexedDB) and synced automatically when online.
-- **Optimistic UI**: Interface reacts immediately to user input ("Saved!") without waiting for server network calls.
+- **Optimistic UI**: Interface reacts immediately to user input ("Saved!" or "Deleted") without waiting for server network calls.
 - **Synchronization**:
     - **Engine**: A dedicated `useSync` composable handles queue management and conflict resolution.
     - **Backfill**: Existing data was migrated to support offline-generated UUIDs.

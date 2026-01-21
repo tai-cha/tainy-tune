@@ -36,6 +36,12 @@ const handleJournalUpdate = (updatedJournal: JournalEntry) => {
     }
   }
 };
+
+const handleJournalDelete = (id: string) => {
+  if (recentJournals.value) {
+    recentJournals.value = recentJournals.value.filter(j => j.id !== id);
+  }
+};
 </script>
 
 <template>
@@ -107,7 +113,7 @@ const handleJournalUpdate = (updatedJournal: JournalEntry) => {
           {{ $t('dashboard.recent.empty') }}
         </div>
         <JournalCard v-for="journal in recentJournals" :key="journal.id" :journal="journal"
-          @updated="handleJournalUpdate" />
+          @updated="handleJournalUpdate" @deleted="handleJournalDelete" />
       </div>
     </div>
   </div>

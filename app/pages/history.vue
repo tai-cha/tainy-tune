@@ -252,6 +252,18 @@ const handleJournalUpdate = (updatedJournal: JournalEntry) => {
     }
   }
 };
+
+const handleJournalDelete = (id: string) => {
+  // Remove from journals array
+  if (journals.value) {
+    journals.value = journals.value.filter(j => j.id !== id);
+  }
+
+  // Remove from allJournals array
+  if (allJournals.value) {
+    allJournals.value = allJournals.value.filter(j => j.id !== id);
+  }
+};
 </script>
 
 <template>
@@ -323,7 +335,8 @@ const handleJournalUpdate = (updatedJournal: JournalEntry) => {
       </div>
 
       <div :class="$style.list">
-        <JournalCard v-for="journal in journals" :key="journal.id" :journal="journal" @updated="handleJournalUpdate" />
+        <JournalCard v-for="journal in journals" :key="journal.id" :journal="journal" @updated="handleJournalUpdate"
+          @deleted="handleJournalDelete" />
         <div v-if="!journals?.length" :class="$style.empty">
           {{ $t('history.empty.week') }}
         </div>
@@ -341,7 +354,7 @@ const handleJournalUpdate = (updatedJournal: JournalEntry) => {
         {{ $t('history.empty.day') }}
       </div>
       <JournalCard v-for="journal in selectedDayJournals" :key="journal.id" :journal="journal"
-        @updated="handleJournalUpdate" />
+        @updated="handleJournalUpdate" @deleted="handleJournalDelete" />
     </div>
 
     <!-- List View -->
@@ -349,7 +362,8 @@ const handleJournalUpdate = (updatedJournal: JournalEntry) => {
       <div v-if="!allJournals?.length && !isLoading" :class="$style.empty">
         {{ $t('history.empty.general') }}
       </div>
-      <JournalCard v-for="journal in allJournals" :key="journal.id" :journal="journal" @updated="handleJournalUpdate" />
+      <JournalCard v-for="journal in allJournals" :key="journal.id" :journal="journal" @updated="handleJournalUpdate"
+        @deleted="handleJournalDelete" />
 
       <!-- Sentinel for infinite scroll -->
       <div ref="sentinel" :class="$style.sentinel">
