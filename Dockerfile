@@ -11,7 +11,7 @@ WORKDIR /src
 # Build
 FROM base as build
 
-COPY --link package.json pnpm-lock.yaml .
+COPY --link package.json pnpm-lock.yaml ./
 RUN corepack enable
 RUN pnpm install --frozen-lockfile
 

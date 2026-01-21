@@ -132,6 +132,21 @@ export default defineNuxtConfig({
         if (existsSync(src) && existsSync(resolve(process.cwd(), '.output/server'))) {
           cpSync(src, dest, { recursive: true });
         }
+
+        // Copy embedding worker script
+        const workerSrc = resolve(process.cwd(), 'server/utils/embedding-worker.mjs');
+        const workerDest = resolve(process.cwd(), '.output/server/utils/embedding-worker.mjs');
+        const workerDestDir = resolve(process.cwd(), '.output/server/utils');
+
+        if (existsSync(workerSrc) && existsSync(resolve(process.cwd(), '.output/server'))) {
+          if (!existsSync(workerDestDir)) {
+            // Ensure destination directory exists (though server/utils usually doesn't exist in .output/server structure naturally as utils are bundled)
+            // Actually .output/server usually has chunks, not utils. So we must create it.
+            const { mkdirSync } = await import('fs');
+            mkdirSync(workerDestDir, { recursive: true });
+          }
+          cpSync(workerSrc, workerDest);
+        }
       }
     },
   },
