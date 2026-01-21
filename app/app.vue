@@ -4,13 +4,14 @@ import { useSync } from '~/app/composables/useSync';
 import { useOnline } from '@vueuse/core';
 
 const session = useSession();
-const { pullChanges } = useSync();
+const { pullChanges, pushChanges } = useSync();
 const online = useOnline();
 
 // Trigger sync when session is established
-watch(() => session.value?.data, (newData) => {
+watch(() => session.value?.data, async (newData) => {
   if (newData != null && online.value === true) {
-    pullChanges();
+    await pushChanges();
+    await pullChanges();
   }
 }, { immediate: true });
 </script>
