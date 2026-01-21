@@ -26,4 +26,9 @@ ENV PORT=$PORT
 
 COPY --from=build /src/.output /src/.output
 
+# Install production dependencies
+COPY --link package.json pnpm-lock.yaml ./
+RUN corepack enable
+RUN pnpm install --prod --frozen-lockfile
+
 CMD [ "node", ".output/server/index.mjs" ]

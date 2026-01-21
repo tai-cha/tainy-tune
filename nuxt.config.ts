@@ -145,30 +145,6 @@ export default defineNuxtConfig({
           }
           cpSync(workerSrc, workerDest);
         }
-
-        // 3. Copy Worker Dependencies (Manually handling pnpm symlinks for standalone script)
-        // Since the worker is not bundled, we need its dependencies in node_modules
-        const depsToCopy = ['@xenova/transformers', 'onnxruntime-node', 'onnxruntime-web'];
-        const outputNodeModules = resolve(process.cwd(), '.output/server/node_modules');
-
-        for (const pkg of depsToCopy) {
-          try {
-            // Resolve package root via package.json to handle symlinks correctly
-            const pkgJsonPath = require.resolve(`${pkg}/package.json`);
-            const pkgRoot = dirname(pkgJsonPath);
-            const destPath = join(outputNodeModules, pkg);
-
-            if (!existsSync(dirname(destPath))) {
-              mkdirSync(dirname(destPath), { recursive: true });
-            }
-
-            // Dereference symlinks to ensure we copy actual files
-            cpSync(pkgRoot, destPath, { recursive: true, dereference: true });
-            console.log(`✅  Copied worker dependency: ${pkg}`);
-          } catch (e) {
-            console.warn(`⚠️  Failed to copy worker dependency ${pkg}:`, e);
-          }
-        }
       }
     },
   },
