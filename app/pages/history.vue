@@ -7,13 +7,15 @@ import {
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
+import type { JournalEntry } from '~/utils/local-db';
+
 const viewMode = ref<'month' | 'week' | 'list' | 'day'>('list');
 const currentDate = ref(new Date());
 const selectedDate = ref<Date | null>(null);
 const searchQuery = ref('');
 
 // List View State
-const allJournals = ref<any[]>([]);
+const allJournals = ref<JournalEntry[]>([]);
 const page = ref(0);
 const limit = 20;
 const hasMore = ref(true);
@@ -42,7 +44,7 @@ const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const { fetchJournals } = useJournalQuery();
 
 // Data Fetching
-const journals = ref<any[]>([]);
+const journals = ref<JournalEntry[]>([]);
 const latestRequestId = ref(0);
 
 const fetchCalendarData = async () => {
@@ -232,6 +234,24 @@ const selectedDayJournals = computed(() => {
   if (!selectedDate.value) return [];
   return getJournalsForDay(selectedDate.value);
 });
+
+const handleJournalUpdate = (updatedJournal: JournalEntry) => {
+  // Update in journals array (calendar/week view)
+  if (journals.value) {
+    const index = journals.value.findIndex(j => j.id === updatedJournal.id);
+    if (index !== -1) {
+      journals.value[index] = { ...journals.value[index], ...updatedJournal };
+    }
+  }
+
+  // Update in allJournals array (list view)
+  if (allJournals.value) {
+    const index = allJournals.value.findIndex(j => j.id === updatedJournal.id);
+    if (index !== -1) {
+      allJournals.value[index] = { ...allJournals.value[index], ...updatedJournal };
+    }
+  }
+};
 </script>
 
 <template>
@@ -303,7 +323,7 @@ const selectedDayJournals = computed(() => {
       </div>
 
       <div :class="$style.list">
-        <JournalCard v-for="journal in journals" :key="journal.id" :journal="journal" />
+        <JournalCard v-for="journal in journals" :key="journal.id" :journal="journal" @updated="handleJournalUpdate" />
         <div v-if="!journals?.length" :class="$style.empty">
           {{ $t('history.empty.week') }}
         </div>
@@ -320,7 +340,8 @@ const selectedDayJournals = computed(() => {
       <div v-if="!selectedDayJournals.length" :class="$style.empty">
         {{ $t('history.empty.day') }}
       </div>
-      <JournalCard v-for="journal in selectedDayJournals" :key="journal.id" :journal="journal" />
+      <JournalCard v-for="journal in selectedDayJournals" :key="journal.id" :journal="journal"
+        @updated="handleJournalUpdate" />
     </div>
 
     <!-- List View -->
@@ -328,7 +349,7 @@ const selectedDayJournals = computed(() => {
       <div v-if="!allJournals?.length && !isLoading" :class="$style.empty">
         {{ $t('history.empty.general') }}
       </div>
-      <JournalCard v-for="journal in allJournals" :key="journal.id" :journal="journal" />
+      <JournalCard v-for="journal in allJournals" :key="journal.id" :journal="journal" @updated="handleJournalUpdate" />
 
       <!-- Sentinel for infinite scroll -->
       <div ref="sentinel" :class="$style.sentinel">

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, useCssModule, watch } from 'vue';
-import { db } from '~/utils/local-db';
+import { db, type JournalEntry } from '~/utils/local-db';
 import { useToast } from '@app/composables/useToast';
 
 const content = ref('');
 const mood = ref(5);
 const loading = ref(false);
-const result = ref<any>(null);
+const result = ref<JournalEntry | null>(null);
 
 const style = useCssModule();
 const { t } = useI18n();
@@ -259,7 +259,7 @@ async function submitJournal() {
     <!-- RESULT CARD -->
     <div v-if="result" :class="$style.resultSection">
       <h3 :class="$style.resultTitle">Analyze Result</h3>
-      <JournalCard :journal="result" />
+      <JournalCard :journal="result" @updated="(updated: JournalEntry) => result = updated" />
 
       <div :class="$style.resultActions">
         <NuxtLink to="/" :class="$style.homeLink">{{ $t('journal.result.backToHome') }}</NuxtLink>

@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { ChatBubbleBottomCenterTextIcon, ArrowPathIcon, TrashIcon, PencilSquareIcon } from '@heroicons/vue/24/outline';
 import { useToast } from '@app/composables/useToast';
+import type { JournalEntry } from '~/utils/local-db';
 
 const props = defineProps<{
   journal: {
@@ -47,13 +48,16 @@ const startEdit = () => {
   router.push(`/journals/${props.journal.id}/edit`);
 };
 
+const emit = defineEmits<{
+  (e: 'updated', journal: JournalEntry): void;
+}>();
+
 const handleRetry = async () => {
   if (isRetrying.value) return;
   isRetrying.value = true;
   try {
-    await $fetch(`/api/journals/${props.journal.id}/analyze`, { method: 'POST' });
-    // Global refresh to update the list
-    await refreshNuxtData();
+    const updatedJournal = await $fetch<JournalEntry>(`/api/journals/${props.journal.id}/analyze`, { method: 'POST' });
+    emit('updated', updatedJournal);
   } catch (error: any) {
     toastError(error.message || 'Retry failed');
   } finally {

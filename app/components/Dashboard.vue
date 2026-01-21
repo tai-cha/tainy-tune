@@ -27,6 +27,15 @@ const recentJournals = ref<JournalEntry[]>([]);
 onMounted(async () => {
   recentJournals.value = await fetchJournals({ limit: 3 }) || [];
 });
+
+const handleJournalUpdate = (updatedJournal: JournalEntry) => {
+  if (recentJournals.value) {
+    const index = recentJournals.value.findIndex(j => j.id === updatedJournal.id);
+    if (index !== -1) {
+      recentJournals.value[index] = { ...recentJournals.value[index], ...updatedJournal };
+    }
+  }
+};
 </script>
 
 <template>
@@ -97,7 +106,8 @@ onMounted(async () => {
         <div v-if="!recentJournals?.length" :class="$style.empty">
           {{ $t('dashboard.recent.empty') }}
         </div>
-        <JournalCard v-for="journal in recentJournals" :key="journal.id" :journal="journal" />
+        <JournalCard v-for="journal in recentJournals" :key="journal.id" :journal="journal"
+          @updated="handleJournalUpdate" />
       </div>
     </div>
   </div>

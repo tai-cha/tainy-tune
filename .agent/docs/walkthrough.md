@@ -8,6 +8,7 @@ The core loop of the application is the structured journaling process.
     - **Fact/Emotion Decomposition**: AI automatically separates objective facts from subjective emotions/thoughts.
     - **Cognitive Distortions**: Automatically tags distortions (e.g., "All-or-Nothing", "Mind Reading").
     - **Smart Advice (RAG)**: AI provides CBT-based advice, referencing similar past entries to encourage insight.
+    - **Re-analysis**: Manual trigger to re-run AI analysis if it initially failed. UI updates immediately upon success.
     - **Mood Score**: Auto-estimated (1-10) but user-adjustable.
 
 ## 2. History & Reflection (Phase 2 & 3)
