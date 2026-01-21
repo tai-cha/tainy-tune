@@ -35,7 +35,7 @@ Interactive deep-dive into the user's logs.
 - **Framework**: Nuxt 3 (Universal Rendering).
 - **Database**: PostgreSQL + `pgvector` (Drizzle ORM).
 - **AI**: Gemini 2.5 Flash (via Google AI Studio).
-- **Embeddings**: Local extraction via Transformers.js. Worker script copied via Nitro Build Hooks; dependencies installed via Docker.
+- **Embeddings**: Local extraction via Transformers.js. Model pre-downloaded during Docker build for offline capability.
 - **i18n**: Fully localized (Japanese/English) via `@nuxtjs/i18n`.
 - **PWA**: Fully offline-capable via `@vite-pwa/nuxt`. Installed as "Tainy Tune".
 

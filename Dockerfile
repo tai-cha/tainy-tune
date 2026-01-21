@@ -24,11 +24,16 @@ FROM base
 
 ENV PORT=$PORT
 
-COPY --from=build /src/.output /src/.output
-
 # Install production dependencies
 COPY --link package.json pnpm-lock.yaml ./
 RUN corepack enable
 RUN pnpm install --prod --frozen-lockfile
+
+# Pre-download embedding model
+COPY --link scripts/download-model.mjs ./scripts/
+RUN node scripts/download-model.mjs
+
+# Copy build output (Change often, so keep it at the end)
+COPY --from=build /src/.output /src/.output
 
 CMD [ "node", ".output/server/index.mjs" ]

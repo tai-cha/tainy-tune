@@ -1,9 +1,11 @@
 
 import { pipeline, env } from '@xenova/transformers';
+import path from 'path';
 
-// Configure to ensure local execution
-env.allowLocalModels = false;
-env.useBrowserCache = false;
+// Configure to prefer local execution but allow fallback
+env.allowLocalModels = true;
+env.allowRemoteModels = true; // Enable remote fallback
+env.cacheDir = path.resolve(process.cwd(), '.cache');
 
 // Input from arguments
 const text = process.argv[2];
