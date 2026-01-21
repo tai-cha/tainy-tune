@@ -148,7 +148,7 @@ export default defineNuxtConfig({
 
         // 3. Copy Worker Dependencies (Manually handling pnpm symlinks for standalone script)
         // Since the worker is not bundled, we need its dependencies in node_modules
-        const depsToCopy = ['@xenova/transformers', 'onnxruntime-node'];
+        const depsToCopy = ['@xenova/transformers', 'onnxruntime-node', 'onnxruntime-web'];
         const outputNodeModules = resolve(process.cwd(), '.output/server/node_modules');
 
         for (const pkg of depsToCopy) {
