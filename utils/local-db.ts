@@ -19,7 +19,7 @@ export interface JournalEntry {
 export interface SyncQueueItem {
   id?: number; // Auto-increment
   action: 'create' | 'update' | 'delete';
-  payload: any;
+  payload: JournalEntry;
   createdAt: number;
 }
 

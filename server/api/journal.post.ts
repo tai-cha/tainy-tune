@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const userId = session.user.id;
 
   const body = await readBody(event);
-  const { content, moodScore, id } = body;
+  const { content, moodScore, id, ...rest } = body;
 
   if (!content || typeof content !== 'string') {
     throw createError({
@@ -76,6 +76,7 @@ export default defineEventHandler(async (event) => {
         fact: aiAnalysis.fact,
         emotion: aiAnalysis.emotion,
         isAnalysisFailed: aiAnalysis.isAnalysisFailed,
+        ...(rest.createdAt != null ? { createdAt: new Date(rest.createdAt) } : {})
       })
       .returning();
 
