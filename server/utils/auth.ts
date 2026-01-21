@@ -77,6 +77,10 @@ export const auth = betterAuth({
       secure: !isDev,
       sameSite: "lax",
       httpOnly: true
+    },
+    ipAddressHeaders: ["x-better-auth-trust-ip"],
+    crossSubdomainCookies: {
+      enabled: true
     }
   }
 });
