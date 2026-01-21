@@ -52,8 +52,12 @@ async function handleSignup() {
   }
 }
 
-const { data: settings } = await useFetch('/api/settings/public');
+const { data: settings, refresh: refreshSettings } = await useFetch('/api/settings/public');
 const token = ref('');
+
+onMounted(() => {
+  refreshSettings();
+});
 import VueTurnstile from 'vue-turnstile';
 </script>
 
@@ -100,7 +104,8 @@ import VueTurnstile from 'vue-turnstile';
         </div>
 
         <div v-if="settings?.turnstileSiteKey && settings?.registrationEnabled" :class="$style.turnstileWrapper">
-          <VueTurnstile :site-key="settings.turnstileSiteKey" v-model="token" theme="light" />
+          <VueTurnstile :key="settings.turnstileSiteKey" :site-key="settings.turnstileSiteKey" v-model="token"
+            theme="light" />
         </div>
 
         <button type="submit" :class="['btn-primary', $style.submitBtn]" :disabled="loading">
