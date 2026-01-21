@@ -106,12 +106,6 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
-    externals: {
-      traceInclude: [
-        'node_modules/@xenova/transformers',
-        'node_modules/onnxruntime-node',
-      ],
-    },
     typescript: {
       tsConfig: {
         compilerOptions: {
@@ -130,28 +124,50 @@ export default defineNuxtConfig({
         require('onnxruntime-node');
       },
       close: async () => {
-        // Copy migrations to .output/server/migrations on build close
-        const { cpSync, existsSync } = await import('fs');
-        const { resolve } = await import('path');
+        const { cpSync, existsSync, mkdirSync } = await import('fs');
+        const { resolve, dirname, join } = await import('path');
+
+        // 1. Copy Migrations
         const src = resolve(process.cwd(), 'server/db/migrations');
         const dest = resolve(process.cwd(), '.output/server/migrations');
         if (existsSync(src) && existsSync(resolve(process.cwd(), '.output/server'))) {
           cpSync(src, dest, { recursive: true });
         }
 
-        // Copy embedding worker script
+        // 2. Copy Embedding Worker Script
         const workerSrc = resolve(process.cwd(), 'server/utils/embedding-worker.mjs');
-        const workerDest = resolve(process.cwd(), '.output/server/utils/embedding-worker.mjs');
         const workerDestDir = resolve(process.cwd(), '.output/server/utils');
+        const workerDest = join(workerDestDir, 'embedding-worker.mjs');
 
         if (existsSync(workerSrc) && existsSync(resolve(process.cwd(), '.output/server'))) {
           if (!existsSync(workerDestDir)) {
-            // Ensure destination directory exists (though server/utils usually doesn't exist in .output/server structure naturally as utils are bundled)
-            // Actually .output/server usually has chunks, not utils. So we must create it.
-            const { mkdirSync } = await import('fs');
             mkdirSync(workerDestDir, { recursive: true });
           }
           cpSync(workerSrc, workerDest);
+        }
+
+        // 3. Copy Worker Dependencies (Manually handling pnpm symlinks for standalone script)
+        // Since the worker is not bundled, we need its dependencies in node_modules
+        const depsToCopy = ['@xenova/transformers', 'onnxruntime-node'];
+        const outputNodeModules = resolve(process.cwd(), '.output/server/node_modules');
+
+        for (const pkg of depsToCopy) {
+          try {
+            // Resolve package root via package.json to handle symlinks correctly
+            const pkgJsonPath = require.resolve(`${pkg}/package.json`);
+            const pkgRoot = dirname(pkgJsonPath);
+            const destPath = join(outputNodeModules, pkg);
+
+            if (!existsSync(dirname(destPath))) {
+              mkdirSync(dirname(destPath), { recursive: true });
+            }
+
+            // Dereference symlinks to ensure we copy actual files
+            cpSync(pkgRoot, destPath, { recursive: true, dereference: true });
+            console.log(`✅  Copied worker dependency: ${pkg}`);
+          } catch (e) {
+            console.warn(`⚠️  Failed to copy worker dependency ${pkg}:`, e);
+          }
         }
       }
     },
