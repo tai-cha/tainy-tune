@@ -53,6 +53,9 @@ Multi-user support for secure personal use.
 - **Security Hardening**:
     - **Cloudflare Turnstile**: Integrated into Signup and Login forms to prevent bot attacks.
     - **Rate Limiting**: 15 req/min on authentication endpoints, IP-based blocking.
+    - **Trust Proxy Support**: Automated IP resolution for proxied environments (Cloudflare Tunnel, etc.).
+        - Prioritizes `CF-Connecting-IP`, `True-Client-IP`, etc.
+        - Supports `X-Forwarded-For` with configurable hop count via `BETTER_AUTH_TRUST_PROXY_HOPS` env var.
     - **Registration Control**: Admin can toggle new user registration ON/OFF from the dashboard.
     - **Secret Management**: Turnstile keys are managed via Admin Dashboard (stored in DB).
 
