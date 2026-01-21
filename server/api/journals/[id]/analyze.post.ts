@@ -59,10 +59,23 @@ export default defineEventHandler(async (event) => {
     const aiAnalysis = await analyzeJournal(journal.content, contextJournals);
 
     if (aiAnalysis.isAnalysisFailed) {
-      throw createError({
-        statusCode: 429,
-        message: 'AI analysis failed again (Rate Limit). Please try later.',
-      });
+      const reason = aiAnalysis.failureReason;
+      if (reason === 'NETWORK_ERROR') {
+        throw createError({
+          statusCode: 503,
+          message: 'AI Service Unavailable (Network Error). Please check your connection.',
+        });
+      } else if (reason === 'RATE_LIMIT') {
+        throw createError({
+          statusCode: 429,
+          message: 'AI analysis failed (Rate Limit). Please try later.',
+        });
+      } else {
+        throw createError({
+          statusCode: 500,
+          message: 'AI analysis failed (Internal Error).',
+        });
+      }
     }
 
     // 5. Update DB

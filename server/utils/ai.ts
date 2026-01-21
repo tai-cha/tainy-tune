@@ -30,7 +30,7 @@ export type JournalEntry = {
   advice: string | null;
 };
 
-export async function analyzeJournal(content: string, contextJournals: JournalEntry[] = []): Promise<AnalysisResult & { isAnalysisFailed: boolean }> {
+export async function analyzeJournal(content: string, contextJournals: JournalEntry[] = []): Promise<AnalysisResult & { isAnalysisFailed: boolean; failureReason?: 'RATE_LIMIT' | 'NETWORK_ERROR' | 'UNKNOWN' }> {
   // Format context for prompt
   const contextString = contextJournals.length > 0
     ? `
@@ -75,8 +75,20 @@ export async function analyzeJournal(content: string, contextJournals: JournalEn
     const json = JSON.parse(text);
     const data = AnalysisSchema.parse(json);
     return { ...data, isAnalysisFailed: false };
-  } catch (error) {
+  } catch (error: any) {
     console.error('AI Analysis failed:', error);
+
+    let failureReason: 'RATE_LIMIT' | 'NETWORK_ERROR' | 'UNKNOWN' = 'UNKNOWN';
+    const errorMessage = error?.message || '';
+    const status = error?.status || error?.response?.status;
+
+    // Classify error
+    if (status === 429 || status === 503 || errorMessage.includes('429') || errorMessage.includes('Overloaded')) {
+      failureReason = 'RATE_LIMIT';
+    } else if (errorMessage.includes('fetch failed') || errorMessage.includes('EAI_AGAIN') || errorMessage.includes('network')) {
+      failureReason = 'NETWORK_ERROR';
+    }
+
     // Return safe fallback
     return {
       moodScore: 5,
@@ -86,6 +98,7 @@ export async function analyzeJournal(content: string, contextJournals: JournalEn
       fact: '',
       emotion: '',
       isAnalysisFailed: true,
+      failureReason,
     };
   }
 }
