@@ -1,0 +1,2 @@
+CREATE INDEX "journals_user_id_created_at_idx" ON "journals" USING btree ("userId","createdAt" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "journals_user_id_updated_at_idx" ON "journals" USING btree ("userId","updatedAt" DESC NULLS LAST);

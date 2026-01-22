@@ -70,6 +70,8 @@ export const journals = pgTable('journals', {
   embedding: vector('embedding', { dimensions: 384 }),
 }, (table) => ({
   embeddingIndex: index('journals_embedding_index').using('hnsw', table.embedding.op('vector_cosine_ops')),
+  userIdCreatedAtIndex: index('journals_user_id_created_at_idx').on(table.userId, table.createdAt.desc()),
+  userIdUpdatedAtIndex: index('journals_user_id_updated_at_idx').on(table.userId, table.updatedAt.desc()),
 }));
 
 // Threads table for chat sessions
