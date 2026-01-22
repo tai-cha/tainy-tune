@@ -68,7 +68,9 @@ export const journals = pgTable('journals', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt'),
   embedding: vector('embedding', { dimensions: 384 }),
-});
+}, (table) => ({
+  embeddingIndex: index('journals_embedding_index').using('hnsw', table.embedding.op('vector_cosine_ops')),
+}));
 
 // Threads table for chat sessions
 export const threads = pgTable('threads', {
