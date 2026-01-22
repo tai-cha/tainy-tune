@@ -70,7 +70,7 @@ import VueTurnstile from 'vue-turnstile';
           <input v-model="form.password" type="password" required :class="$style.input" placeholder="••••••••" />
         </div>
 
-        <div v-if="settings?.turnstileSiteKey && settings?.registrationEnabled" :class="$style.turnstileWrapper">
+        <div v-if="settings?.turnstileSiteKey" :class="$style.turnstileWrapper">
           <VueTurnstile :key="settings.turnstileSiteKey" :site-key="settings.turnstileSiteKey" v-model="token"
             theme="light" />
         </div>
